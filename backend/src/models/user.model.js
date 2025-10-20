@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
-
+const { ROLES } = require('../utils/ENUMS');
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -126,6 +126,16 @@ const UserSchema = new mongoose.Schema({
       default: "Private",
     },
   },
+
+  role: {
+    type: String,
+    enum: Object.values(ROLES),
+    default: ROLES.USER,
+    required: true
+  },
+
+
+
   isActive: { type: Boolean, default: true },
   lastLogin: Date,
   createdAt: { type: Date, default: Date.now },

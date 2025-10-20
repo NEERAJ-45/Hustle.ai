@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { register, login, getProfile } = require('../controllers/authController');
 const { registerSchema, loginSchema } = require('../validations/authValidation');
-const validate = require('../middlewares/validation');
+const {validate} = require('../middlewares/validation');
 const authMiddleware = require('../middlewares/authMiddleware');
 
 // Rate limiting for auth routes
@@ -10,7 +10,7 @@ const rateLimit = require('express-rate-limit');
 
 const authLimiter = rateLimit({
   windowMs: 30* 1000, // 15 minutes
-  max: 15, // 5 requests per window
+  max: 15, // 5 requests per window 
   message: {
     success: false,
     message: 'Too many authentication attempts, please try again later'
