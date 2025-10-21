@@ -24,6 +24,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.20.0",
     "mongoose": "^8.19.1",
+    "multer": "^2.0.2",
     "pino-http": "^11.0.0",
     "xss-clean": "^0.1.4"
   },
