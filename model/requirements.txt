@@ -1,0 +1,6 @@
+pymongo[srv]
+fastapi
+uvicorn
+sentence-transformers
+scikit-learn
+python-dotenv
