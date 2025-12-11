@@ -68,10 +68,7 @@ Hustle.ai/
 │   │
 │   ├── uploads/                     # File upload storage
 │   │   └── resumes/
-│   │       ├── 1761015998167-116114070-Neeraj-Surnis_23UCS320.pdf
-│   │       ├── 1761017324542-107541141-Resume_Neeraj_Surnis.pdf
-│   │       ├── 1761017362020-427367499-Resume_Neeraj_Surnis.pdf
-│   │       └── 1761017415093-616830816-Neeraj-Surnis_23UCS320.pdf
+│   │       ├── [4 uploaded resume PDF files]
 │   │
 │   ├── package-lock.json
 │   └── package.json
@@ -228,7 +225,7 @@ The following folders are excluded as they contain build artifacts or dependenci
 - `__pycache__/` - Python bytecode cache
 
 ### 📝 Files Present in Repository
-The `backend/uploads/resumes/` folder contains 4 sample PDF resumes, indicating the upload functionality is operational.
+The `backend/uploads/resumes/` folder contains 4 uploaded PDF resume files, indicating the upload functionality is operational.
 
 ### ⚠️ No Suspicious or Unused Folders Detected
 All folders serve a clear purpose in the application architecture.
