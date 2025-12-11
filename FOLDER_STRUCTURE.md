@@ -1,6 +1,6 @@
 # Hustle.ai - Complete Folder Structure
 
-This document provides a comprehensive overview of the entire project structure.
+This document provides a comprehensive overview of the entire project structure, helping developers quickly understand the codebase organization, locate specific components, and navigate the three-tier architecture (backend, frontend, and ML service).
 
 ## Complete Project Tree
 
@@ -240,9 +240,9 @@ All folders serve a clear purpose in the application architecture.
 3. **ML Service**: Python + FastAPI
 4. **UI Components**: shadcn/ui
 5. **Styling**: Tailwind CSS + PostCSS
-6. **Database**: Configuration present (likely MongoDB based on model structure)
+6. **Database**: MongoDB
 
 ---
 
-*Generated on: 2025-12-11*  
+*Generated on: December 11, 2024*  
 *Repository: NEERAJ-45/Hustle.ai*
