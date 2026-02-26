@@ -37,7 +37,7 @@ app.use((req, res, next) => {
 });
 
 // --- Routes ---
-app.use("/api/auth", authRoutes);
+app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/jobs", jobRoutes);
 app.use("/api/v1/resumes", resumeRoutes);

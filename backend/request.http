@@ -1,0 +1,265 @@
+ ### Hustle.ai API Collection
+# Base URL variable: {{base_url}}
+# Auth token variable: {{token}}
+
+# =====================
+# Auth
+# =====================
+
+### Register
+POST {{base_url}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+###
+
+### Login
+POST {{base_url}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+###
+
+### Profile
+GET {{base_url}}/api/v1/auth/profile
+Authorization: Bearer {{token}}
+
+###
+
+# =====================
+# Jobs
+# =====================
+
+### List Jobs
+GET {{base_url}}/api/v1/jobs
+
+###
+
+### Get Job By ID
+GET {{base_url}}/api/v1/jobs/:id
+
+###
+
+### Create Job
+POST {{base_url}}/api/v1/jobs
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Job Title",
+  "description": "Job Description"
+}
+
+###
+
+### Update Job
+PUT {{base_url}}/api/v1/jobs/:id
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Updated Title",
+  "description": "Updated Description"
+}
+
+###
+
+### Delete Job
+DELETE {{base_url}}/api/v1/jobs/:id
+Authorization: Bearer {{token}}
+
+###
+
+# =====================
+# Resumes
+# =====================
+
+### List Resumes
+GET {{base_url}}/api/v1/resumes
+Authorization: Bearer {{token}}
+
+###
+
+### Upload Resume
+# Note: multipart/form-data — replace <path/to/resume> with actual file path
+POST {{base_url}}/api/v1/resumes
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----FormBoundary
+
+------FormBoundary
+Content-Disposition: form-data; name="resume"; filename="resume.pdf"
+Content-Type: application/octet-stream
+
+< <path/to/resume>
+------FormBoundary--
+
+###
+
+### Get Resume By ID
+GET {{base_url}}/api/v1/resumes/:id
+Authorization: Bearer {{token}}
+
+###
+
+### Update Resume
+# Note: multipart/form-data — replace <path/to/resume> with actual file path
+PUT {{base_url}}/api/v1/resumes/:id
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----FormBoundary
+
+------FormBoundary
+Content-Disposition: form-data; name="resume"; filename="resume.pdf"
+Content-Type: application/octet-stream
+
+< <path/to/resume>
+------FormBoundary--
+
+###
+
+### Delete Resume
+DELETE {{base_url}}/api/v1/resumes/:id
+Authorization: Bearer {{token}}
+
+###
+
+# =====================
+# Cover Letters
+# =====================
+
+### List Cover Letters
+GET {{base_url}}/api/v1/coverletters
+Authorization: Bearer {{token}}
+
+###
+
+### Create Cover Letter
+POST {{base_url}}/api/v1/coverletters
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Cover Letter Title",
+  "content": "Cover Letter Content"
+}
+
+###
+
+### Get Cover Letter By ID
+GET {{base_url}}/api/v1/coverletters/:id
+Authorization: Bearer {{token}}
+
+###
+
+### Update Cover Letter
+PUT {{base_url}}/api/v1/coverletters/:id
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Updated Title",
+  "content": "Updated Content"
+}
+
+###
+
+### Delete Cover Letter
+DELETE {{base_url}}/api/v1/coverletters/:id
+Authorization: Bearer {{token}}
+
+###
+
+# =====================
+# Users
+# =====================
+
+### Get My Profile
+GET {{base_url}}/api/v1/users/me
+Authorization: Bearer {{token}}
+
+###
+
+### Update My Profile
+PUT {{base_url}}/api/v1/users/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Name"
+}
+
+###
+
+### Get User By ID
+GET {{base_url}}/api/v1/users/:id
+Authorization: Bearer {{token}}
+
+###
+
+### Delete User By ID
+DELETE {{base_url}}/api/v1/users/:id
+Authorization: Bearer {{token}}
+
+###
+
+# =====================
+# Job Matches
+# =====================
+
+### List Job Matches
+GET {{base_url}}/api/v1/jobmatches
+Authorization: Bearer {{token}}
+
+###
+
+### Refresh Job Matches
+POST {{base_url}}/api/v1/jobmatches/refresh
+Authorization: Bearer {{token}}
+
+###
+
+# =====================
+# Dashboard
+# =====================
+
+### Get Dashboard
+GET {{base_url}}/api/v1/dashboard
+Authorization: Bearer {{token}}
+
+###
+
+# =====================
+# Search
+# =====================
+
+### Global Search
+GET {{base_url}}/api/v1/search
+Authorization: Bearer {{token}}
+
+###
+
+# =====================
+# Upload
+# =====================
+
+### Upload File
+# Note: multipart/form-data — replace <path/to/file> with actual file path
+POST {{base_url}}/api/v1/upload
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----FormBoundary
+
+------FormBoundary
+Content-Disposition: form-data; name="file"; filename="file"
+Content-Type: application/octet-stream
+
+< <path/to/file>
+------FormBoundary--
+
+###

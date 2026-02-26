@@ -14,6 +14,7 @@ const generateToken = (userId) => {
 const register = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
+    // logger.info(`Attempting to register user with email: ${email}`);
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -31,7 +32,7 @@ const register = async (req, res, next) => {
     });
 
     await user.save();
-
+    // logger.info(`New user registered: ${user.email}`);
     // Generate JWT token
     const token = generateToken(user._id);
 

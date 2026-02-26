@@ -144,18 +144,7 @@ export default function SignupPage() {
         </Card>
 
         {/* Features */}
-        <div className="mt-8 grid grid-cols-3 gap-4 text-center">
-          {[
-            { label: "AI Matching", icon: "🎯" },
-            { label: "Auto Apply", icon: "⚡" },
-            { label: "Track Progress", icon: "📊" },
-          ].map((feature) => (
-            <div key={feature.label} className="text-sm">
-              <div className="text-2xl mb-1">{feature.icon}</div>
-              <p className="text-gray-600">{feature.label}</p>
-            </div>
-          ))}
-        </div>
+         
       </motion.div>
     </div>
   )

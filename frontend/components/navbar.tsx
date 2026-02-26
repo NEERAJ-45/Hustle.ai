@@ -157,7 +157,7 @@ export function Navbar() {
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <User className="w-4 h-4" />
-                  Sign In
+                  Sign Inssss
                 </Button>
                 <Button 
                   className="w-full bg-gradient-to-r from-[#ef4444] to-[#2563eb] text-white rounded-lg shadow-md"
