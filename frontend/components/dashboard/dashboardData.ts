@@ -1,0 +1,66 @@
+export const jobMatches = [
+  {
+    id: 1,
+    title: "Senior Frontend Engineer",
+    company: "TechCorp",
+    location: "San Francisco, CA",
+    salary: "$150k - $200k",
+    match: 98,
+    posted: "2 hours ago",
+    status: "new",
+  },
+  {
+    id: 2,
+    title: "Full Stack Developer",
+    company: "StartupXYZ",
+    location: "Remote",
+    salary: "$120k - $160k",
+    match: 95,
+    posted: "5 hours ago",
+    status: "new",
+  },
+  {
+    id: 3,
+    title: "React Native Developer",
+    company: "MobileFirst",
+    location: "New York, NY",
+    salary: "$130k - $180k",
+    match: 92,
+    posted: "1 day ago",
+    status: "applied",
+  },
+  {
+    id: 4,
+    title: "UX Engineer",
+    company: "DesignStudio",
+    location: "Austin, TX",
+    salary: "$110k - $150k",
+    match: 89,
+    posted: "2 days ago",
+    status: "viewed",
+  },
+];
+
+export const applications = [
+  {
+    id: 1,
+    job: "Senior Frontend Engineer at TechCorp",
+    status: "Interview Scheduled",
+    date: "2024-01-15",
+    stage: "Technical Interview",
+  },
+  {
+    id: 2,
+    job: "Full Stack Developer at StartupXYZ",
+    status: "Application Submitted",
+    date: "2024-01-14",
+    stage: "Under Review",
+  },
+  {
+    id: 3,
+    job: "React Developer at WebCo",
+    status: "Offer Received",
+    date: "2024-01-10",
+    stage: "Negotiation",
+  },
+];

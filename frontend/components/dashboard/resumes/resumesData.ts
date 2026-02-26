@@ -1,0 +1,32 @@
+export const resumes = [
+  {
+    id: 1,
+    name: "Frontend Engineer Resume",
+    lastUpdated: "2 hours ago",
+    score: 95,
+    keywords: 28,
+    applications: 12,
+    successRate: 42,
+    isPrimary: true,
+  },
+  {
+    id: 2,
+    name: "Full Stack Developer Resume",
+    lastUpdated: "1 day ago",
+    score: 87,
+    keywords: 24,
+    applications: 8,
+    successRate: 38,
+    isPrimary: false,
+  },
+  {
+    id: 3,
+    name: "React Native Resume",
+    lastUpdated: "3 days ago",
+    score: 92,
+    keywords: 26,
+    applications: 3,
+    successRate: 33,
+    isPrimary: false,
+  },
+];
