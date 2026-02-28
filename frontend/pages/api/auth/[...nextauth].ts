@@ -57,7 +57,7 @@ export const authOptions = {
         try {
           if (!credentials?.email || !credentials?.password) return null;
           // Determine if this is a signup or login
-          const isSignup = credentials.isSignup === true || credentials.isSignup === 'true';
+          const isSignup = credentials.isSignup === 'true' ;
           const endpoint = isSignup
             ? `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/v1/auth/register`
             : `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/v1/auth/login`;

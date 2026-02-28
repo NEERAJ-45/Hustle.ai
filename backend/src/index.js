@@ -24,15 +24,16 @@ app.use(
       "http://localhost:3000",
     ],
     credentials: true,
-  })
+  }),
 );
 app.use(compression());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // --- Request Logger ---
+const logger = require("./utils/logger");
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  logger.log(`${req.method} ${req.originalUrl}`);
   next();
 });
 
@@ -42,10 +43,6 @@ app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/jobs", jobRoutes);
 app.use("/api/v1/resumes", resumeRoutes);
 app.use("/api/v1/coverletters", coverLetterRoutes);
-
-
-
-
 
 // --- Health Check ---
 app.get("/health", (req, res) => {
