@@ -13,11 +13,7 @@ export function AuthButtons() {
   }
   return (
     <div>
-      <button onClick={() => signIn("google")}>Sign in with Google</button>
-      <button onClick={() => signIn("github")}>Sign in with GitHub</button>
-      <button onClick={() => signIn("credentials")}>
-        Sign in with Credentials
-      </button>
+      <button onClick={() => signIn("credentials")}>Sign in</button>
     </div>
   );
 }

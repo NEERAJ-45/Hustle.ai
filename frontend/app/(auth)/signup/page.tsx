@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -15,9 +16,10 @@ export default function SignupPage() {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-    // You may want to collect more fields (first/last name) and send to a custom API route
+    // Send name, email, password to backend
     const res = await signIn("credentials", {
       redirect: false,
+      name,
       email,
       password,
       isSignup: true,
@@ -153,6 +155,14 @@ export default function SignupPage() {
           </p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
+              type="text"
+              placeholder="Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              required
+            />
+            <input
               type="email"
               placeholder="Email"
               value={email}
@@ -183,14 +193,6 @@ export default function SignupPage() {
             >
               <img src="/google.svg" alt="Google" className="w-5 h-5" />
               Sign up with Google
-            </button>
-            <button
-              type="button"
-              className="w-full flex items-center justify-center gap-2 border mt-2 py-2 rounded-lg bg-white hover:bg-gray-50 transition"
-              onClick={() => signIn("github")}
-            >
-              <img src="/github.svg" alt="GitHub" className="w-5 h-5" />
-              Sign up with GitHub
             </button>
           </form>
         </div>

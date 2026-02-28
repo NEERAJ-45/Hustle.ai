@@ -176,22 +176,7 @@ export default function LoginPage() {
             >
               {isLoading ? "Logging in..." : "Login Now"}
             </button>
-            <button
-              type="button"
-              className="w-full flex items-center justify-center gap-2 border mt-2 py-2 rounded-lg bg-white hover:bg-gray-50 transition"
-              onClick={() => signIn("google")}
-            >
-              <img src="/google.svg" alt="Google" className="w-5 h-5" />
-              Login with Google
-            </button>
-            <button
-              type="button"
-              className="w-full flex items-center justify-center gap-2 border mt-2 py-2 rounded-lg bg-white hover:bg-gray-50 transition"
-              onClick={() => signIn("github")}
-            >
-              <img src="/github.svg" alt="GitHub" className="w-5 h-5" />
-              Login with GitHub
-            </button>
+            {/* Social login removed as per requirements */}
           </form>
           <div className="flex justify-between mt-4 text-sm">
             <span className="text-gray-500">Forgot password?</span>

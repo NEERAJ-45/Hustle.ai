@@ -36,7 +36,6 @@ const jobListings = [
     match: 95,
     posted: "5 hours ago",
     description: "Fast-growing startup looking for versatile full-stack engineer...",
-    import JobListingsList from "@/components/dashboard/jobs/JobListingsList";
     skills: ["Node.js", "React", "MongoDB", "AWS"],
     saved: true,
   },

@@ -40,34 +40,42 @@ function logEvent(type: LogType, message: string, meta?: unknown) {
 export const authOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
-    GoogleProvider({
+    // Google login is main source
+    require('next-auth/providers/google').default({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
-    }),
-    GithubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID ?? "",
-      clientSecret: process.env.GITHUB_CLIENT_SECRET ?? "",
     }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
+        name: { label: "Name", type: "text", required: false },
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        isSignup: { label: "Signup", type: "hidden", required: false },
       },
       async authorize(credentials) {
         try {
           if (!credentials?.email || !credentials?.password) return null;
-          const user = await prisma.user.findUnique({
-            where: { email: credentials.email },
+          // Determine if this is a signup or login
+          const isSignup = credentials.isSignup === true || credentials.isSignup === 'true';
+          const endpoint = isSignup
+            ? `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/v1/auth/register`
+            : `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/v1/auth/login`;
+          const payload = isSignup
+            ? { name: credentials.name, email: credentials.email, password: credentials.password }
+            : { email: credentials.email, password: credentials.password };
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
           });
-          if (!user) return null;
-          // TODO: Replace with bcrypt check in production
-          // @ts-ignore
-          if (user.password && credentials.password !== user.password) return null;
-          // NextAuth expects id as string
+          const data = await res.json();
+          if (!data.success || !data.data || !data.data.user) return null;
+          // Attach JWT token to user object for session
           return {
-            ...user,
-            id: String(user.id),
+            ...data.data.user,
+            id: data.data.user.id || data.data.user._id,
+            token: data.data.token,
           };
         } catch (error) {
           logEvent('ERROR', 'Authorize error', error);
