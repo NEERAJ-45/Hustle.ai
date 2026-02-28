@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Menu, X, ChevronRight, User } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -53,7 +55,7 @@ export function Navbar() {
 
           {/* Logo - Different scaling for mobile and desktop */}
           <div className="md:hidden">
-            <a 
+            <Link 
               href="/" 
               className="flex items-center group cursor-pointer"
               aria-label="Hustle.ai Home"
@@ -68,12 +70,12 @@ export function Navbar() {
                   height={64}
                 />
               </div>
-            </a>
+            </Link>
           </div>
 
           {/* Desktop Logo */}
           <div className="hidden md:block">
-            <a 
+            <Link 
               href="/" 
               className="flex items-center group cursor-pointer"
               aria-label="Hustle.ai Home"
@@ -88,42 +90,46 @@ export function Navbar() {
                   height={96}
                 />
               </div>
-            </a>
+            </Link>
           </div>
 
           {/* Desktop Navigation (Center) */}
           <div className="hidden lg:flex items-center gap-1 xl:gap-2 flex-1 justify-center">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.name}
                 href={link.href}
                 className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200 rounded-lg hover:bg-gray-50"
               >
                 {link.name}
                 <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-[#ef4444] to-[#2563eb] hover:w-3/4 transition-all duration-300" />
-              </a>
+              </Link>
             ))}
           </div>
 
           {/* Right Side Actions */}
           <div className="hidden md:flex items-center gap-2 lg:gap-4">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="text-sm text-gray-700 hover:text-[#ef4444] hover:bg-gray-100 rounded-lg px-3 lg:px-4"
-            >
-              <User className="w-4 h-4 mr-2" />
-              <span className="hidden lg:inline">Sign In</span>
-              <span className="lg:hidden">Login</span>
-            </Button>
-            <Button 
-              className="bg-gradient-to-r from-[#ef4444] to-[#2563eb] hover:from-[#dc2626] hover:to-[#1d4ed8] text-white rounded-lg px-4 lg:px-6 py-2 transition-all duration-300 shadow-md hover:shadow-lg"
-            >
-              <span className="flex items-center gap-1 lg:gap-2 text-sm lg:text-base">
-                Get Started
-                <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4" />
-              </span>
-            </Button>
+            <Link href="/login" passHref legacyBehavior>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-sm text-gray-700 hover:text-[#ef4444] hover:bg-gray-100 rounded-lg px-3 lg:px-4"
+              >
+                <User className="w-4 h-4 mr-2" />
+                <span className="hidden lg:inline">Sign In</span>
+                <span className="lg:hidden">Login</span>
+              </Button>
+            </Link>
+            <Link href="/signup" passHref legacyBehavior>
+              <Button 
+                className="bg-linear-to-r from-[#ef4444] to-[#2563eb] hover:from-[#dc2626] hover:to-[#1d4ed8] text-white rounded-lg px-4 lg:px-6 py-2 transition-all duration-300 shadow-md hover:shadow-lg"
+              >
+                <span className="flex items-center gap-1 lg:gap-2 text-sm lg:text-base">
+                  Get Started
+                  <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4" />
+                </span>
+              </Button>
+            </Link>
           </div>
 
           {/* Placeholder for mobile layout balance */}
@@ -137,7 +143,7 @@ export function Navbar() {
               {/* Mobile Navigation Links */}
               <div className="space-y-1">
                 {navLinks.map((link) => (
-                  <a
+                  <Link
                     key={link.name}
                     href={link.href}
                     className="flex items-center justify-between px-4 py-3 text-gray-700 hover:text-[#ef4444] hover:bg-gray-50 rounded-lg transition-colors duration-200"
@@ -145,29 +151,33 @@ export function Navbar() {
                   >
                     <span className="font-medium">{link.name}</span>
                     <ChevronRight className="w-4 h-4 text-gray-400" />
-                  </a>
+                  </Link>
                 ))}
               </div>
               
               {/* Mobile CTA Buttons */}
               <div className="pt-4 px-4 space-y-3 border-t border-gray-200">
-                <Button 
-                  variant="outline" 
-                  className="w-full gap-2 border-gray-300 hover:border-[#ef4444] hover:text-[#ef4444] rounded-lg"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <User className="w-4 h-4" />
-                  Sign Inssss
-                </Button>
-                <Button 
-                  className="w-full bg-gradient-to-r from-[#ef4444] to-[#2563eb] text-white rounded-lg shadow-md"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <span className="flex items-center gap-2">
-                    Get Started
-                    <ChevronRight className="w-4 h-4" />
-                  </span>
-                </Button>
+                <Link href="/login" passHref legacyBehavior>
+                  <Button 
+                    variant="outline" 
+                    className="w-full gap-2 border-gray-300 hover:border-[#ef4444] hover:text-[#ef4444] rounded-lg"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <User className="w-4 h-4" />
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/signup" passHref legacyBehavior>
+                  <Button 
+                    className="w-full bg-gradient-to-r from-[#ef4444] to-[#2563eb] text-white rounded-lg shadow-md"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <span className="flex items-center gap-2">
+                      Get Started
+                      <ChevronRight className="w-4 h-4" />
+                    </span>
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
