@@ -36,33 +36,107 @@ export default function SignupPage() {
       <div className="hidden md:flex flex-col justify-between items-start w-1/2 bg-gradient-to-br from-[#3b2ff6] to-[#2a1a7c] p-14 text-white min-h-screen shadow-xl">
         <div className="w-full">
           <div className="flex items-center gap-3 mb-8">
-            <img src="/logo.svg" alt="Hustle.ai Logo" className="h-10 w-10 rounded-full bg-white/10 p-1" />
-            <span className="text-3xl font-extrabold tracking-tight">Hustle.ai</span>
+            <img
+              src="/logo.svg"
+              alt="Hustle.ai Logo"
+              className="h-10 w-10 rounded-full bg-white/10 p-1"
+            />
+            <span className="text-3xl font-extrabold tracking-tight">
+              Hustle.ai
+            </span>
           </div>
-          <h1 className="text-4xl font-bold mb-4 leading-tight">Automate. Apply. Achieve.</h1>
+          <h1 className="text-4xl font-bold mb-4 leading-tight">
+            Automate. Apply. Achieve.
+          </h1>
           <p className="mb-8 text-lg text-white/90 max-w-md">
-            Join Hustle.ai and unlock your career potential with AI-powered tools for job seekers and sales pros. <span className="font-semibold text-white">Save time, get matched, and stand out.</span>
+            Join Hustle.ai and unlock your career potential with AI-powered
+            tools for job seekers and sales pros.{" "}
+            <span className="font-semibold text-white">
+              Save time, get matched, and stand out.
+            </span>
           </p>
           <div className="space-y-4 mb-10">
             <div className="flex items-center gap-3">
-              <span className="bg-white/20 rounded-full p-2"><svg xmlns='http://www.w3.org/2000/svg' className='h-5 w-5 text-white' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c1.104 0 2-.896 2-2s-.896-2-2-2-2 .896-2 2 .896 2 2 2zm0 2c-2.21 0-4 1.79-4 4v2h8v-2c0-2.21-1.79-4-4-4z' /></svg></span>
+              <span className="bg-white/20 rounded-full p-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8c1.104 0 2-.896 2-2s-.896-2-2-2-2 .896-2 2 .896 2 2 2zm0 2c-2.21 0-4 1.79-4 4v2h8v-2c0-2.21-1.79-4-4-4z"
+                  />
+                </svg>
+              </span>
               <span>Personalized job matching</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="bg-white/20 rounded-full p-2"><svg xmlns='http://www.w3.org/2000/svg' className='h-5 w-5 text-white' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 17v-2a4 4 0 018 0v2M5 10h14M12 14v7' /></svg></span>
+              <span className="bg-white/20 rounded-full p-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 17v-2a4 4 0 018 0v2M5 10h14M12 14v7"
+                  />
+                </svg>
+              </span>
               <span>1-click resume & cover letter</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="bg-white/20 rounded-full p-2"><svg xmlns='http://www.w3.org/2000/svg' className='h-5 w-5 text-white' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m4 0h-1v4h-1m-4 0h-1v-4h-1' /></svg></span>
+              <span className="bg-white/20 rounded-full p-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m4 0h-1v4h-1m-4 0h-1v-4h-1"
+                  />
+                </svg>
+              </span>
               <span>Smart analytics dashboard</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="bg-white/20 rounded-full p-2"><svg xmlns='http://www.w3.org/2000/svg' className='h-5 w-5 text-white' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 20l9-5-9-5-9 5 9 5zm0-10V4m0 0L3 9m9-5l9 5' /></svg></span>
+              <span className="bg-white/20 rounded-full p-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 20l9-5-9-5-9 5 9 5zm0-10V4m0 0L3 9m9-5l9 5"
+                  />
+                </svg>
+              </span>
               <span>Automated outreach & follow-up</span>
             </div>
           </div>
         </div>
-        <span className="text-xs text-white/60 mt-auto">© 2026 Hustle.ai. All rights reserved.</span>
+        <span className="text-xs text-white/60 mt-auto">
+          © 2026 Hustle.ai. All rights reserved.
+        </span>
       </div>
       {/* Right: Signup Form */}
       <div className="flex-1 flex flex-col justify-center p-8 md:p-16 bg-white">
@@ -109,6 +183,14 @@ export default function SignupPage() {
             >
               <img src="/google.svg" alt="Google" className="w-5 h-5" />
               Sign up with Google
+            </button>
+            <button
+              type="button"
+              className="w-full flex items-center justify-center gap-2 border mt-2 py-2 rounded-lg bg-white hover:bg-gray-50 transition"
+              onClick={() => signIn("github")}
+            >
+              <img src="/github.svg" alt="GitHub" className="w-5 h-5" />
+              Sign up with GitHub
             </button>
           </form>
         </div>
