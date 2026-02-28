@@ -1,19 +1,19 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
 // This is a basic Prisma schema for NextAuth
 // Update datasource provider and url as needed
 
 datasource db {
-  provider = "mongodb"
-  // url property removed for Prisma 7.x
+  provider = "mysql"
+    url      = env("DATABASE_URL")
 }
 
 // NextAuth models
 model Account {
-  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId             String
+  id                 Int      @id @default(autoincrement())
+  userId             Int
   type               String
   provider           String
   providerAccountId  String
@@ -30,15 +30,15 @@ model Account {
 }
 
 model Session {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  id           Int      @id @default(autoincrement())
   sessionToken String   @unique
-  userId       String
+  userId       Int
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  id            Int       @id @default(autoincrement())
   name          String?
   email         String?   @unique
   emailVerified DateTime?
@@ -48,7 +48,7 @@ model User {
 }
 
 model VerificationToken {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  id         Int      @id @default(autoincrement())
   identifier String
   token      String   @unique
   expires    DateTime

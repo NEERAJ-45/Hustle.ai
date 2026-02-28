@@ -4,12 +4,17 @@ import GithubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 // If you get an error here, ensure @prisma/client is installed and generated
-import { PrismaClient } from "../../../src/generated/prisma/client";
+import { PrismaClient } from "@prisma/client";
 // import { PrismaPg } from '@prisma/adapter-pg';
 import fs from 'fs';
 import path from 'path';
 
-const prisma = new PrismaClient({});
+declare global {
+  // eslint-disable-next-line no-var
+  var prisma: PrismaClient | undefined;
+}
+const prisma = global.prisma || new PrismaClient({ log: [] });
+if (process.env.NODE_ENV !== "production") global.prisma = prisma;
 
 // Simple logger
 type LogType = 'ERROR' | 'EVENT' | 'INFO' | 'WARN' | 'QUERY';
