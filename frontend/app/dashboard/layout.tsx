@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +29,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { signOut } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
+import { fetchCurrentUser, type CurrentUser } from "@/lib/api-client";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
@@ -45,10 +46,34 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const hasShownLoginToast = useRef(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadCurrentUser() {
+      try {
+        const user = await fetchCurrentUser();
+        if (isMounted) {
+          setCurrentUser(user);
+        }
+      } catch {
+        if (isMounted) {
+          setCurrentUser(null);
+        }
+      }
+    }
+
+    loadCurrentUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (
@@ -78,6 +103,15 @@ export default function DashboardLayout({
       toast.error("Logout failed. Please try again.");
     }
   };
+
+  const displayName = currentUser?.name || "User";
+  const avatarFallback =
+    displayName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((word) => word[0]?.toUpperCase() || "")
+      .join("") || "U";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -118,18 +152,33 @@ export default function DashboardLayout({
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="gap-2">
                     <Avatar className="w-8 h-8">
-                      <AvatarImage src="/placeholder-user.jpg" />
-                      <AvatarFallback>NS</AvatarFallback>
+                      <AvatarFallback>{avatarFallback}</AvatarFallback>
                     </Avatar>
-                    <span className="hidden sm:inline">Neeraj Surnis</span>
+                    <span className="hidden sm:inline">{displayName}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
-                  <DropdownMenuItem>Billing</DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      router.push("/dashboard/settings?tab=profile")
+                    }
+                  >
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => router.push("/dashboard/settings?tab=job")}
+                  >
+                    Job Preferences
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      router.push("/dashboard/settings?tab=billing")
+                    }
+                  >
+                    Billing
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
                     Log out
@@ -180,7 +229,7 @@ export default function DashboardLayout({
                 ))}
                 <Button
                   variant="ghost"
-                  className="w-full justify-start gap-2 text-red-600 hover:text-red-700"
+                  className="w-full justify-start gap-2 text-red-600"
                   onClick={handleLogout}
                 >
                   Log out

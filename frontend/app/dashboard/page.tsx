@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import DashboardStats from "@/components/dashboard/DashboardStats";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import JobMatchesList from "@/components/dashboard/JobMatchesList";
 import ApplicationsList from "@/components/dashboard/ApplicationsList";
+import {
+  fetchDashboard,
+  fetchCurrentUser,
+  type DashboardData,
+} from "@/lib/api-client";
 
 import { motion } from "framer-motion";
 import {
@@ -18,6 +22,7 @@ import {
   FileText,
   AlertCircle,
   BarChart3,
+  TrendingUp,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -26,6 +31,110 @@ import { AnimatedNumber } from "@/components/ui/animated-number";
 
 export default function DashboardPage() {
   const [selectedTab, setSelectedTab] = useState("matches");
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    null,
+  );
+  const [displayName, setDisplayName] = useState("User");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    async function loadDashboard() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const [data, user] = await Promise.all([
+          fetchDashboard(),
+          fetchCurrentUser(),
+        ]);
+        setDashboardData(data);
+        setDisplayName(user.name?.trim() || "User");
+      } catch (err) {
+        console.error("Failed to load dashboard:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to load dashboard",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    if (session) {
+      loadDashboard();
+    }
+  }, [session]);
+
+  const aiMetrics = [
+    {
+      label: "Profile Completion",
+      value: dashboardData?.profile.completionScore || 0,
+      color: "bg-green-500",
+    },
+    {
+      label: "Job Match Health",
+      value: dashboardData?.matches.total
+        ? Math.min(
+            100,
+            Math.round(
+              ((dashboardData.matches.applied + dashboardData.matches.saved) /
+                dashboardData.matches.total) *
+                100,
+            ),
+          )
+        : 0,
+      color: "bg-blue-500",
+    },
+    {
+      label: "Application Momentum",
+      value: Math.min(100, (dashboardData?.stats.applicationsSent || 0) * 5),
+      color: "bg-purple-500",
+    },
+  ];
+
+  const recentActivities =
+    dashboardData?.applicationsList.slice(0, 4).map((application) => {
+      const status = application.status.toLowerCase();
+      const icon = status.includes("interview")
+        ? Calendar
+        : status.includes("offer")
+          ? TrendingUp
+          : status.includes("reject")
+            ? AlertCircle
+            : CheckCircle;
+      const color = status.includes("interview")
+        ? "text-blue-600"
+        : status.includes("offer")
+          ? "text-green-600"
+          : status.includes("reject")
+            ? "text-red-600"
+            : "text-purple-600";
+
+      return {
+        action: `${application.status}: ${application.job}`,
+        time: new Date(application.date).toLocaleDateString(),
+        icon,
+        color,
+      };
+    }) || [];
+
+  const weeklyStats = [
+    {
+      label: "Applications",
+      value: dashboardData?.applications.total || 0,
+      color: "bg-blue-500",
+    },
+    {
+      label: "Interviews",
+      value: dashboardData?.applications.interviews || 0,
+      color: "bg-green-500",
+    },
+    {
+      label: "Offers",
+      value: dashboardData?.applications.offers || 0,
+      color: "bg-purple-500",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -37,9 +146,9 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-4"
           >
-            <h1 className="text-3xl font-bold">Welcome back, Neeraj!</h1>
+            <h1 className="text-3xl font-bold">Welcome back, {displayName}!</h1>
             <p className="text-white/80">
-              Your job search is performing great. Keep up the momentum!
+              Here is your latest job search performance from live data.
             </p>
           </motion.div>
         </div>
@@ -47,41 +156,76 @@ export default function DashboardPage() {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-        >
-          {[
-            {
-              label: "Job Matches",
-              value: 47,
-              icon: Target,
-              color: "text-[#2563eb]",
-              bgColor: "bg-blue-100",
-            },
-            {
-              label: "Applications Sent",
-              value: 23,
-              icon: Send,
-              color: "text-green-600",
-              bgColor: "bg-green-100",
-            },
-            // ...add more stat objects as needed
-          ].map((stat, idx) => (
-            <div
-              key={idx}
-              className={`flex items-center gap-4 p-4 rounded-lg shadow-sm ${stat.bgColor}`}
-            >
-              <stat.icon className={`w-8 h-8 ${stat.color}`} />
-              <div>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <div className="text-gray-700 font-medium">{stat.label}</div>
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="animate-pulse bg-gray-200 h-24 rounded-lg"
+              />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-8">
+            <p className="font-medium">Failed to load dashboard data</p>
+            <p className="text-sm">{error}</p>
+          </div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+          >
+            {[
+              {
+                label: "Job Matches",
+                value: dashboardData?.stats.jobMatches || 0,
+                icon: Target,
+                color: "text-[#2563eb]",
+                bgColor: "bg-blue-100",
+              },
+              {
+                label: "Applications Sent",
+                value: dashboardData?.stats.applicationsSent || 0,
+                icon: Send,
+                color: "text-green-600",
+                bgColor: "bg-green-100",
+              },
+              {
+                label: "Interviews",
+                value: dashboardData?.stats.interviews || 0,
+                icon: Calendar,
+                color: "text-purple-600",
+                bgColor: "bg-purple-100",
+              },
+              {
+                label: "Offers",
+                value: dashboardData?.stats.offers || 0,
+                icon: TrendingUp,
+                color: "text-amber-600",
+                bgColor: "bg-amber-100",
+              },
+            ].map((stat, idx) => (
+              <div
+                key={idx}
+                className={`flex items-center gap-4 p-4 rounded-lg shadow-sm bg-white border-2 border-${stat.bgColor}`}
+              >
+                <div className={`p-3 rounded-full ${stat.bgColor}`}>
+                  <stat.icon className={`w-6 h-6 ${stat.color}`} />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">
+                    <AnimatedNumber value={stat.value} />
+                  </div>
+                  <div className="text-sm text-gray-600 font-medium">
+                    {stat.label}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
-        </motion.div>
+            ))}
+          </motion.div>
+        )}
 
         {/* Main Content Grid: Left = Tabs, Right = AI Assistant & Stats */}
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -96,10 +240,32 @@ export default function DashboardPage() {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="matches" className="space-y-4 mt-6">
-                <JobMatchesList />
+                {isLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div
+                        key={i}
+                        className="animate-pulse bg-gray-200 h-24 rounded-lg"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <JobMatchesList data={dashboardData?.jobMatchesList} />
+                )}
               </TabsContent>
               <TabsContent value="applications" className="space-y-4 mt-6">
-                <ApplicationsList />
+                {isLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div
+                        key={i}
+                        className="animate-pulse bg-gray-200 h-24 rounded-lg"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <ApplicationsList data={dashboardData?.applicationsList} />
+                )}
               </TabsContent>
             </Tabs>
           </div>
@@ -120,13 +286,10 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-sm text-white/80">
-                    Your resume is being optimized for Senior Frontend roles
+                    AI insights are generated from your current dashboard
+                    activity.
                   </p>
-                  {[
-                    { label: "Relevance", value: 95, color: "bg-green-500" },
-                    { label: "Keywords", value: 87, color: "bg-blue-500" },
-                    { label: "Formatting", value: 92, color: "bg-purple-500" },
-                  ].map((metric) => (
+                  {aiMetrics.map((metric) => (
                     <div key={metric.label} className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <span>{metric.label}</span>
@@ -166,32 +329,7 @@ export default function DashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {[
-                    {
-                      action: "Applied to Senior Frontend Engineer",
-                      time: "2 hours ago",
-                      icon: CheckCircle,
-                      color: "text-green-600",
-                    },
-                    {
-                      action: "Interview scheduled at TechCorp",
-                      time: "5 hours ago",
-                      icon: Calendar,
-                      color: "text-blue-600",
-                    },
-                    {
-                      action: "Resume updated for React roles",
-                      time: "1 day ago",
-                      icon: FileText,
-                      color: "text-purple-600",
-                    },
-                    {
-                      action: "New job match found",
-                      time: "2 days ago",
-                      icon: AlertCircle,
-                      color: "text-amber-600",
-                    },
-                  ].map((activity, index) => (
+                  {recentActivities.map((activity, index) => (
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, y: 10 }}
@@ -230,23 +368,7 @@ export default function DashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {[
-                    {
-                      label: "Applications Sent",
-                      value: 12,
-                      color: "bg-blue-500",
-                    },
-                    {
-                      label: "Profile Views",
-                      value: 34,
-                      color: "bg-green-500",
-                    },
-                    {
-                      label: "Interview Requests",
-                      value: 3,
-                      color: "bg-purple-500",
-                    },
-                  ].map((stat, index) => (
+                  {weeklyStats.map((stat, index) => (
                     <motion.div
                       key={stat.label}
                       initial={{ opacity: 0, x: 10 }}

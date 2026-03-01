@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { CheckCircle } from "lucide-react"
+import { useState } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle } from "lucide-react";
 
 export function PricingSection() {
-  const [isAnnual, setIsAnnual] = useState(false)
+  const [isAnnual, setIsAnnual] = useState(false);
 
   const plans = [
     {
@@ -60,21 +60,27 @@ export function PricingSection() {
       cta: "Contact Sales",
       popular: false,
     },
-  ]
+  ];
 
   return (
     <section id="pricing" className="py-20 bg-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
-          <p className="text-xl text-gray-700 leading-relaxed mb-8">Choose the plan that fits your job search needs</p>
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            Simple, Transparent Pricing
+          </h2>
+          <p className="text-xl text-gray-700 leading-relaxed mb-8">
+            Choose the plan that fits your job search needs
+          </p>
 
           {/* Toggle Switch */}
           <div className="inline-flex items-center gap-4 p-1 bg-gray-100 rounded-lg">
             <button
               onClick={() => setIsAnnual(false)}
               className={`px-6 py-2 rounded-md font-medium transition-all duration-200 ${
-                !isAnnual ? "bg-white text-[#334e68] shadow-sm" : "text-gray-600"
+                !isAnnual
+                  ? "bg-white text-[#334e68] shadow-sm"
+                  : "text-gray-600"
               }`}
             >
               Monthly
@@ -96,7 +102,9 @@ export function PricingSection() {
             <Card
               key={plan.name}
               className={`bg-white rounded-xl border-2 transition-all duration-300 hover:shadow-xl ${
-                plan.popular ? "border-[#2563eb] shadow-lg relative" : "border-gray-200"
+                plan.popular
+                  ? "border-[#2563eb] shadow-lg relative"
+                  : "border-gray-200"
               }`}
             >
               {plan.popular && (
@@ -107,7 +115,9 @@ export function PricingSection() {
                 </div>
               )}
               <CardHeader className="text-center pt-8 pb-6">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  {plan.name}
+                </h3>
                 <p className="text-gray-600 mb-6">{plan.description}</p>
                 <div className="mb-2">
                   <span className="text-5xl font-bold text-gray-900">
@@ -116,11 +126,14 @@ export function PricingSection() {
                   <span className="text-gray-600 ml-2">/month</span>
                 </div>
                 {isAnnual && plan.annualPrice < plan.monthlyPrice && (
-                  <p className="text-sm text-[#2563eb]">Billed ${plan.annualPrice * 12} annually</p>
+                  <p className="text-sm text-[#2563eb]">
+                    Billed ${plan.annualPrice * 12} annually
+                  </p>
                 )}
               </CardHeader>
               <CardContent className="space-y-6">
                 <Button
+                  asChild
                   className={`w-full ${
                     plan.popular
                       ? "bg-gradient-to-r from-[#334e68] to-[#2563eb] hover:opacity-90 text-white"
@@ -128,7 +141,7 @@ export function PricingSection() {
                   }`}
                   size="lg"
                 >
-                  {plan.cta}
+                  <a href="/signup">{plan.cta}</a>
                 </Button>
                 <div className="space-y-3 pt-4">
                   {plan.features.map((feature) => (
@@ -144,5 +157,5 @@ export function PricingSection() {
         </div>
       </div>
     </section>
-  )
+  );
 }

@@ -9,6 +9,7 @@ const authRoutes = require("./routes/authRoutes");
 const jobRoutes = require("./routes/jobRoutes");
 const resumeRoutes = require("./routes/resumeRoutes");
 const coverLetterRoutes = require("./routes/coverLetterRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 const errorHandler = require("./middlewares/errorHandler");
 
 const app = express();
@@ -43,6 +44,7 @@ app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/jobs", jobRoutes);
 app.use("/api/v1/resumes", resumeRoutes);
 app.use("/api/v1/coverletters", coverLetterRoutes);
+app.use("/api/v1/dashboard", dashboardRoutes);
 
 // --- Health Check ---
 app.get("/health", (req, res) => {
@@ -63,7 +65,7 @@ app.use((req, res) => {
 
 // --- Global Error Handler ---
 app.use(errorHandler);
-console.log("Environment:", process.env.NODE_ENV);
+// console.log("Environment:", process.env.NODE_ENV);
 
 // --- Start Server ---
 const PORT = process.env.PORT;

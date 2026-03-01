@@ -9,6 +9,8 @@ import { PrismaClient } from "@prisma/client";
 import fs from 'fs';
 import path from 'path';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+
 declare global {
   // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;
@@ -90,8 +92,49 @@ export const authOptions = {
   },
   callbacks: {
     async session({ session, token, user }: { session: any; token: any; user: any }) {
-      logEvent('EVENT', 'Session callback', { session, token, user });
+      if (!session.user) session.user = {};
+      session.user.id = token.id;
+      session.user.role = token.role;
+      session.user.token = token.backendToken;
+      logEvent('EVENT', 'Session callback', { hasToken: !!token.backendToken, userId: token.id });
       return session;
+    },
+    async jwt({ token, user }: { token: any; user?: any }) {
+      if (user) {
+        token.id = user.id || user._id;
+        token.role = user.role;
+        token.backendToken = user.token;
+      }
+
+      if (!token.backendToken && token.email) {
+        try {
+          const response = await fetch(`${BACKEND_URL}/api/v1/auth/oauth-exchange`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: token.email,
+              name: token.name,
+              provider: 'nextauth',
+              providerAccountId: token.sub || token.email,
+            }),
+          });
+
+          const result = await response.json();
+          if (response.ok && result?.success && result?.data?.token) {
+            token.backendToken = result.data.token;
+            token.id = result.data.user?.id || token.id;
+            token.role = result.data.user?.role || token.role;
+            logEvent('EVENT', 'JWT backfill success', { email: token.email });
+          }
+        } catch (error) {
+          logEvent('WARN', 'JWT backfill skipped', {
+            email: token.email,
+            reason: error instanceof Error ? error.message : 'unknown_error',
+          });
+        }
+      }
+
+      return token;
     },
     async signIn(params: {
       user: any;
@@ -100,8 +143,44 @@ export const authOptions = {
       email?: any;
       credentials?: any;
     }) {
-      logEvent('EVENT', 'SignIn callback', params);
-      return true;
+      const { user, account } = params;
+
+      if (account?.provider === 'credentials') {
+        logEvent('EVENT', 'SignIn credentials', { userId: user?.id });
+        return true;
+      }
+
+      try {
+        const exchangePayload = {
+          email: user?.email,
+          name: user?.name,
+          provider: account?.provider,
+          providerAccountId: account?.providerAccountId,
+        };
+
+        const response = await fetch(`${BACKEND_URL}/api/v1/auth/oauth-exchange`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(exchangePayload),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result?.success || !result?.data?.token) {
+          logEvent('ERROR', 'OAuth exchange failed', { status: response.status, result });
+          return false;
+        }
+
+        user.id = result.data.user?.id;
+        user.role = result.data.user?.role;
+        user.token = result.data.token;
+
+        logEvent('EVENT', 'OAuth exchange success', { userId: user.id, provider: account?.provider });
+        return true;
+      } catch (error) {
+        logEvent('ERROR', 'SignIn exchange error', error);
+        return false;
+      }
     },
   },
 };

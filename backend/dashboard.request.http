@@ -1,0 +1,126 @@
+### Dashboard API Requests
+# Variables:
+# @base_url = http://localhost:5000
+# @token = <paste_jwt_here>
+
+@base_url = http://localhost:5000
+@token = REPLACE_WITH_BEARER_TOKEN
+
+# ======================================================
+# Dashboard: Get full dashboard payload for logged-in user
+# ======================================================
+### Get Dashboard
+GET {{base_url}}/api/v1/dashboard
+Authorization: Bearer {{token}}
+
+###
+
+# ======================================================
+# Auth: OAuth token exchange (used by NextAuth OAuth flows)
+# ======================================================
+### OAuth Exchange
+POST {{base_url}}/api/v1/auth/oauth-exchange
+Content-Type: application/json
+
+{
+	"email": "oauth-user@example.com",
+	"name": "OAuth User",
+	"provider": "google",
+	"providerAccountId": "google_sub_123456"
+}
+
+###
+
+# ======================================================
+# Health check (quick backend verification)
+# ======================================================
+### Health Check
+GET {{base_url}}/health
+
+###
+
+# ======================================================
+# Expected dashboard response contract (frontend-aligned)
+# ======================================================
+# success: boolean
+# message: string
+# data:
+#   stats:
+#     jobMatches: number            -> Frontend: "Job Matches"
+#     applicationsSent: number      -> Frontend: "Applications Sent"
+#     interviews: number            -> Frontend: "Interviews"
+#     offers: number                -> Frontend: "Offers"
+#
+#   matches:
+#     total: number
+#     applied: number
+#     saved: number
+#
+#   applications:
+#     total: number
+#     submitted: number
+#     interviews: number
+#     offers: number
+#
+#   profile:
+#     completionScore: number
+#
+#   interviews: Array<{
+#     id: string
+#     title: string
+#     company: string
+#     scheduledAt: string (ISO date)
+#     type: string
+#     status: string
+#     location: string
+#   }>
+#
+#   jobMatchesList: Array<{
+#     id: string
+#     title: string
+#     company: string
+#     location: string
+#     salary: string
+#     match: number
+#     posted: string (ISO date)
+#     status: string
+#   }>
+#
+#   applicationsList: Array<{
+#     id: string
+#     job: string
+#     status: string
+#     date: string (YYYY-MM-DD)
+#     stage: string
+#   }>
+
+# Sample successful shape:
+# {
+#   "success": true,
+#   "message": "Dashboard loaded",
+#   "data": {
+#     "stats": {
+#       "jobMatches": 12,
+#       "applicationsSent": 23,
+#       "interviews": 4,
+#       "offers": 1
+#     },
+#     "matches": {
+#       "total": 12,
+#       "applied": 5,
+#       "saved": 3
+#     },
+#     "applications": {
+#       "total": 23,
+#       "submitted": 9,
+#       "interviews": 4,
+#       "offers": 1
+#     },
+#     "profile": {
+#       "completionScore": 80
+#     },
+#     "interviews": [],
+#     "jobMatchesList": [],
+#     "applicationsList": []
+#   }
+# }

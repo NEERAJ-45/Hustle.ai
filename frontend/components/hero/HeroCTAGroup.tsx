@@ -12,13 +12,13 @@ interface HeroCTAGroupProps {
  */
 const HeroCTAGroup = ({
   primaryLabel,
-  primaryHref,
+  primaryHref = "/signup",
   secondaryLabel,
-  secondaryHref,
+  secondaryHref = "/signup",
 }: HeroCTAGroupProps) => (
   <div className="flex gap-4 mt-2">
     <a
-      href={primaryHref}
+      href={primaryHref || "/signup"}
       className="btn btn-primary px-6 py-3 text-base font-semibold rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
       aria-label={primaryLabel}
     >
@@ -26,7 +26,7 @@ const HeroCTAGroup = ({
     </a>
     {secondaryLabel && secondaryHref && (
       <a
-        href={secondaryHref}
+        href={secondaryHref || "/signup"}
         className="btn btn-secondary px-6 py-3 text-base font-semibold rounded-lg border border-input bg-background hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
         aria-label={secondaryLabel}
       >

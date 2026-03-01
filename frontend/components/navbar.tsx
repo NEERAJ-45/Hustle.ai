@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronRight, User } from "lucide-react";
+import { Menu, X, ChevronRight, User, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUserContext } from "@/context/user-context";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isAuthenticated } = useUserContext();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -115,23 +117,33 @@ export function Navbar() {
               size="sm"
               className="text-sm text-gray-700 hover:text-[#ef4444] hover:bg-gray-100 rounded-lg px-3 lg:px-4"
             >
-              <Link href="/login">
-                <User className="w-4 h-4 mr-2" />
-                <span className="hidden lg:inline">Sign In</span>
-                <span className="lg:hidden">Login</span>
-              </Link>
-            </Button>
-            <Button
-              asChild
-              className="bg-linear-to-r from-[#ef4444] to-[#2563eb] hover:from-[#dc2626] hover:to-[#1d4ed8] text-white rounded-lg px-4 lg:px-6 py-2 transition-all duration-300 shadow-md hover:shadow-lg"
-            >
-              <Link href="/signup">
-                <span className="flex items-center gap-1 lg:gap-2 text-sm lg:text-base">
-                  Get Starteds
-                  <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4" />
+              <Link href={isAuthenticated ? "/dashboard" : "/login"}>
+                {isAuthenticated ? (
+                  <LayoutDashboard className="w-4 h-4 mr-2" />
+                ) : (
+                  <User className="w-4 h-4 mr-2" />
+                )}
+                <span className="hidden lg:inline">
+                  {isAuthenticated ? "Go to Dashboard" : "Sign In"}
+                </span>
+                <span className="lg:hidden">
+                  {isAuthenticated ? "Dashboard" : "Login"}
                 </span>
               </Link>
             </Button>
+            {!isAuthenticated && (
+              <Button
+                asChild
+                className="bg-linear-to-r from-[#ef4444] to-[#2563eb] hover:from-[#dc2626] hover:to-[#1d4ed8] text-white rounded-lg px-4 lg:px-6 py-2 transition-all duration-300 shadow-md hover:shadow-lg"
+              >
+                <Link href="/signup">
+                  <span className="flex items-center gap-1 lg:gap-2 text-sm lg:text-base">
+                    Get Started
+                    <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4" />
+                  </span>
+                </Link>
+              </Button>
+            )}
           </div>
 
           {/* Placeholder for mobile layout balance */}
@@ -170,18 +182,20 @@ export function Navbar() {
                     Sign In
                   </Link>
                 </Button>
-                <Button
-                  asChild
-                  className="w-full bg-linear-to-r from-[#ef4444] to-[#2563eb] text-white rounded-lg shadow-md"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Link href="/signup">
-                    <span className="flex items-center gap-2">
-                      Get Started
-                      <ChevronRight className="w-4 h-4" />
-                    </span>
-                  </Link>
-                </Button>
+                {!isAuthenticated && (
+                  <Button
+                    asChild
+                    className="w-full bg-linear-to-r from-[#ef4444] to-[#2563eb] text-white rounded-lg shadow-md"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Link href="/signup">
+                      <span className="flex items-center gap-2">
+                        Get Started
+                        <ChevronRight className="w-4 h-4" />
+                      </span>
+                    </Link>
+                  </Button>
+                )}
               </div>
             </div>
           </div>

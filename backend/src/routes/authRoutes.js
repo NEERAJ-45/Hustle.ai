@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, getProfile } = require('../controllers/authController');
+const { register, login, oauthExchange, getProfile } = require('../controllers/authController');
 const { registerSchema, loginSchema } = require('../validations/authValidation');
 const {validate} = require('../middlewares/validation');
 const authMiddleware = require('../middlewares/authMiddleware');
@@ -22,6 +22,7 @@ const authLimiter = rateLimit({
 // Public routes
 router.post('/register', authLimiter, validate(registerSchema), register);
 router.post('/login', authLimiter, validate(loginSchema), login);
+router.post('/oauth-exchange', authLimiter, oauthExchange);
 
 // Protected routes
 router.get('/profile', authMiddleware, getProfile);

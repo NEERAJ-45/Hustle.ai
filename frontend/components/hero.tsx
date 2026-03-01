@@ -1,28 +1,44 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Sparkles, ArrowRight, Zap, CheckCircle, Target, Users, BarChart3, Clock, Briefcase, Rocket, Award, LineChart } from "lucide-react"
-import { motion } from "framer-motion"
-import { AnimatedNumber } from "@/components/ui/animated-number"
-import { useIntersectionObserver } from "@/hooks/use-intersection-observer"
-import { useEffect, useState } from "react"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Sparkles,
+  ArrowRight,
+  Zap,
+  CheckCircle,
+  Target,
+  Users,
+  BarChart3,
+  Clock,
+  Briefcase,
+  Rocket,
+  Award,
+  LineChart,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import { AnimatedNumber } from "@/components/ui/animated-number";
+import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
+import { useEffect, useState } from "react";
 
 export function Hero() {
-  const { ref, isVisible } = useIntersectionObserver({ threshold: 0.1 })
-  const [isMobile, setIsMobile] = useState(false)
+  const { ref, isVisible } = useIntersectionObserver({ threshold: 0.1 });
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   return (
-    <section ref={ref} className="relative min-h-screen overflow-hidden bg-gradient-to-b from-white via-blue-50/20 to-white">
+    <section
+      ref={ref}
+      className="relative min-h-screen overflow-hidden bg-gradient-to-b from-white via-blue-50/20 to-white"
+    >
       {/* Responsive Background */}
       <div className="absolute inset-0">
         {/* Mobile-optimized gradients */}
@@ -71,8 +87,9 @@ export function Hero() {
                 transition={{ duration: 0.5, delay: 0.2 }}
                 className="text-lg sm:text-xl text-gray-700 leading-relaxed"
               >
-                Hustle.ai automates your job search with intelligent matching, 
-                personalized applications, and career tracking—all in one platform.
+                Hustle.ai automates your job search with intelligent matching,
+                personalized applications, and career tracking—all in one
+                platform.
               </motion.p>
             </div>
             {/* Features */}
@@ -83,13 +100,31 @@ export function Hero() {
               className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4"
             >
               {[
-                { icon: CheckCircle, text: "AI Job Matching", color: "text-blue-600" },
-                { icon: CheckCircle, text: "One-Click Apply", color: "text-indigo-600" },
-                { icon: CheckCircle, text: "Resume Optimization", color: "text-purple-600" },
-                { icon: CheckCircle, text: "Interview Tracking", color: "text-blue-600" },
+                {
+                  icon: CheckCircle,
+                  text: "AI Job Matching",
+                  color: "text-blue-600",
+                },
+                {
+                  icon: CheckCircle,
+                  text: "One-Click Apply",
+                  color: "text-indigo-600",
+                },
+                {
+                  icon: CheckCircle,
+                  text: "Resume Optimization",
+                  color: "text-purple-600",
+                },
+                {
+                  icon: CheckCircle,
+                  text: "Interview Tracking",
+                  color: "text-blue-600",
+                },
               ].map((feature, index) => (
                 <div key={index} className="flex items-center gap-3">
-                  <feature.icon className={`w-5 h-5 ${feature.color} flex-shrink-0`} />
+                  <feature.icon
+                    className={`w-5 h-5 ${feature.color} flex-shrink-0`}
+                  />
                   <span className="text-gray-700">{feature.text}</span>
                 </div>
               ))}
@@ -102,20 +137,26 @@ export function Hero() {
               className="flex flex-col sm:flex-row gap-4 pt-4"
             >
               <Button
+                asChild
                 size="lg"
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all"
               >
-                <Rocket className="w-5 h-5 mr-2" />
-                Start Free Trial
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <a href="/signup">
+                  <Rocket className="w-5 h-5 mr-2" />
+                  Start Free Trial
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </a>
               </Button>
               <Button
+                asChild
                 size="lg"
                 variant="outline"
                 className="rounded-lg border-2 border-gray-300 hover:border-blue-600 hover:bg-blue-50"
               >
-                <Zap className="w-5 h-5 mr-2" />
-                How It Works
+                <a href="#how-it-works">
+                  <Zap className="w-5 h-5 mr-2" />
+                  How It Works
+                </a>
               </Button>
             </motion.div>
             {/* Stats - Responsive Grid */}
@@ -131,12 +172,19 @@ export function Hero() {
                 { icon: BarChart3, value: 47, label: "Jobs/Month" },
                 { icon: Clock, value: 10, suffix: "x", label: "Faster" },
               ].map((stat, index) => (
-                <div key={index} className="text-center space-y-2 p-3 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-200/50">
+                <div
+                  key={index}
+                  className="text-center space-y-2 p-3 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-200/50"
+                >
                   <stat.icon className="w-5 h-5 md:w-6 md:h-6 text-blue-600 mx-auto" />
                   <p className="text-2xl md:text-3xl font-bold text-gray-900">
-                    {isVisible && <AnimatedNumber value={stat.value} suffix={stat.suffix} />}
+                    {isVisible && (
+                      <AnimatedNumber value={stat.value} suffix={stat.suffix} />
+                    )}
                   </p>
-                  <p className="text-xs md:text-sm text-gray-600">{stat.label}</p>
+                  <p className="text-xs md:text-sm text-gray-600">
+                    {stat.label}
+                  </p>
                 </div>
               ))}
             </motion.div>
@@ -163,8 +211,12 @@ export function Hero() {
                           <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900 text-sm md:text-base">AI Recommended Jobs</h3>
-                          <p className="text-xs text-gray-600">Top matches for you</p>
+                          <h3 className="font-semibold text-gray-900 text-sm md:text-base">
+                            AI Recommended Jobs
+                          </h3>
+                          <p className="text-xs text-gray-600">
+                            Top matches for you
+                          </p>
                         </div>
                       </div>
                       <div className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-md">
@@ -174,17 +226,38 @@ export function Hero() {
                   </div>
                   <CardContent className="p-4 md:p-6 space-y-3 md:space-y-4">
                     {[
-                      { title: "Senior Frontend Engineer", company: "TechCorp", match: 98 },
-                      { title: "Full Stack Developer", company: "StartupXYZ", match: 95 },
-                      { title: "UX Engineer", company: "DesignStudio", match: 92 },
+                      {
+                        title: "Senior Frontend Engineer",
+                        company: "TechCorp",
+                        match: 98,
+                      },
+                      {
+                        title: "Full Stack Developer",
+                        company: "StartupXYZ",
+                        match: 95,
+                      },
+                      {
+                        title: "UX Engineer",
+                        company: "DesignStudio",
+                        match: 92,
+                      },
                     ].map((job, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
                         <div>
-                          <p className="font-medium text-gray-900 text-sm md:text-base">{job.title}</p>
-                          <p className="text-xs text-gray-600">@{job.company}</p>
+                          <p className="font-medium text-gray-900 text-sm md:text-base">
+                            {job.title}
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            @{job.company}
+                          </p>
                         </div>
                         <div className="px-3 py-1 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 rounded-full text-sm font-medium">
-                          {isVisible && <AnimatedNumber value={job.match} suffix="%" />}
+                          {isVisible && (
+                            <AnimatedNumber value={job.match} suffix="%" />
+                          )}
                         </div>
                       </div>
                     ))}
@@ -203,27 +276,50 @@ export function Hero() {
                         <LineChart className="w-4 h-4 md:w-5 md:h-5" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-sm md:text-base">AI Resume Assistant</h3>
-                        <p className="text-xs text-gray-300">Optimization in progress</p>
+                        <h3 className="font-semibold text-sm md:text-base">
+                          AI Resume Assistant
+                        </h3>
+                        <p className="text-xs text-gray-300">
+                          Optimization in progress
+                        </p>
                       </div>
                     </div>
                     <div className="space-y-3">
                       {[
-                        { label: "Relevance", value: 95, color: "from-emerald-400 to-teal-500" },
-                        { label: "Keywords", value: 87, color: "from-blue-400 to-cyan-500" },
-                        { label: "Formatting", value: 92, color: "from-indigo-400 to-purple-500" },
+                        {
+                          label: "Relevance",
+                          value: 95,
+                          color: "from-emerald-400 to-teal-500",
+                        },
+                        {
+                          label: "Keywords",
+                          value: 87,
+                          color: "from-blue-400 to-cyan-500",
+                        },
+                        {
+                          label: "Formatting",
+                          value: 92,
+                          color: "from-indigo-400 to-purple-500",
+                        },
                       ].map((metric, index) => (
                         <div key={index} className="space-y-2">
                           <div className="flex justify-between text-xs md:text-sm">
                             <span>{metric.label}</span>
                             <span className="font-medium">
-                              {isVisible && <AnimatedNumber value={metric.value} suffix="%" />}
+                              {isVisible && (
+                                <AnimatedNumber
+                                  value={metric.value}
+                                  suffix="%"
+                                />
+                              )}
                             </span>
                           </div>
                           <div className="h-1.5 md:h-2 bg-gray-700 rounded-full overflow-hidden">
                             <motion.div
                               initial={{ width: 0 }}
-                              animate={isVisible ? { width: `${metric.value}%` } : {}}
+                              animate={
+                                isVisible ? { width: `${metric.value}%` } : {}
+                              }
                               transition={{ duration: 1.5, delay: index * 0.2 }}
                               className={`h-full rounded-full bg-gradient-to-r ${metric.color}`}
                             />
@@ -251,11 +347,17 @@ export function Hero() {
                       <p className="text-3xl md:text-4xl font-bold">
                         {isVisible && <AnimatedNumber value={94} suffix="%" />}
                       </p>
-                      <p className="text-xs md:text-sm opacity-90 mt-2">Average placement success</p>
+                      <p className="text-xs md:text-sm opacity-90 mt-2">
+                        Average placement success
+                      </p>
                     </div>
                     <motion.div
                       animate={{ rotate: 360 }}
-                      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                      transition={{
+                        duration: 20,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
                       className="hidden md:block"
                     >
                       <div className="w-16 h-16 border-4 border-white/30 border-t-white rounded-full" />
@@ -284,7 +386,13 @@ export function Hero() {
             Trusted by professionals at
           </p>
           <div className="flex flex-wrap justify-center items-center gap-6 md:gap-12 opacity-70">
-            {["TechCorp", "InnovateCo", "FutureLabs", "GlobalTech", "VisionaryAI"].map((company, index) => (
+            {[
+              "TechCorp",
+              "InnovateCo",
+              "FutureLabs",
+              "GlobalTech",
+              "VisionaryAI",
+            ].map((company, index) => (
               <motion.div
                 key={company}
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -299,5 +407,5 @@ export function Hero() {
         </motion.div>
       </div>
     </section>
-  )
+  );
 }

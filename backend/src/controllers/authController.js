@@ -97,6 +97,48 @@ const login = async (req, res, next) => {
   }
 };
 
+// OAuth exchange: upsert user and return backend JWT
+const oauthExchange = async (req, res, next) => {
+  try {
+    const { email, name, provider, providerAccountId } = req.body;
+
+    if (!email || !provider || !providerAccountId) {
+      const error = new Error("Missing required OAuth fields");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        name: name || email.split("@")[0],
+        email,
+        password: `${provider}_${providerAccountId}_${Date.now()}_oauth`,
+      });
+    }
+
+    const token = generateToken(user._id);
+
+    res.status(200).json({
+      success: true,
+      message: "OAuth exchange successful",
+      data: {
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          role: user.role,
+          email: user.email,
+          createdAt: user.createdAt,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Get user profile (protected route)
 const getProfile = async (req, res, next) => {
   try {
@@ -128,5 +170,6 @@ const getProfile = async (req, res, next) => {
 module.exports = {
   register,
   login,
+  oauthExchange,
   getProfile,
 };
