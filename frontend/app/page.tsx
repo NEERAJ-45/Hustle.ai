@@ -1,7 +1,1 @@
-"use client"
-
-import { redirect } from "next/navigation";
-export default function Page() {
-  redirect("/landing");
-  return null;
-}
+export { default } from "./landing/page";

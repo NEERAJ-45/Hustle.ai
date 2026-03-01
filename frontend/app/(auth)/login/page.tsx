@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "react-toastify";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -10,6 +11,19 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const hasShownLogoutToast = useRef(false);
+
+  useEffect(() => {
+    if (
+      searchParams?.get("loggedOut") === "1" &&
+      !hasShownLogoutToast.current
+    ) {
+      hasShownLogoutToast.current = true;
+      toast.success("You have been signed out successfully.");
+      router.replace("/login");
+    }
+  }, [router, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,15 +37,16 @@ export default function LoginPage() {
     setIsLoading(false);
     if (res?.error) {
       setError("Invalid email or password");
+      toast.error("Invalid email or password.");
     } else {
-      router.push("/dashboard");
+      router.push("/dashboard?loginSuccess=1");
     }
   };
 
   return (
     <div className="min-h-screen w-full flex flex-row bg-gray-50">
       {/* Left: Branding & Info */}
-      <div className="hidden md:flex flex-col justify-between items-start w-1/2 bg-gradient-to-br from-[#3b2ff6] to-[#2a1a7c] p-14 text-white min-h-screen shadow-xl">
+      <div className="hidden md:flex flex-col justify-between items-start w-1/2 bg-linear-to-br from-[#3b2ff6] to-[#2a1a7c] p-14 text-white min-h-screen shadow-xl">
         <div className="w-full">
           <div className="flex items-center gap-3 mb-8">
             <img
@@ -139,7 +154,7 @@ export default function LoginPage() {
       {/* Right: Login Form */}
       <div className="flex-1 flex flex-col justify-center p-8 md:p-16 bg-white">
         <div className="w-full">
-          <h2 className="text-2xl font-bold mb-2">Welcome Back!</h2>
+          <h2 className="text-2xl font-bold mb-2">Welcome Back Hustler!</h2>
           <p className="mb-6 text-gray-600 text-sm">
             Don't have an account?{" "}
             <a
@@ -176,7 +191,18 @@ export default function LoginPage() {
             >
               {isLoading ? "Logging in..." : "Login Now"}
             </button>
-            {/* Social login removed as per requirements */}
+            <button
+              type="button"
+              className="w-full flex items-center justify-center gap-2 border mt-2 py-2 rounded-lg bg-white hover:bg-gray-50 transition"
+              onClick={() =>
+                signIn("google", {
+                  callbackUrl: "/dashboard?loginSuccess=1",
+                })
+              }
+            >
+              <img src="/google.svg" alt="Google" className="w-5 h-5" />
+              Sign in with Google
+            </button>
           </form>
           <div className="flex justify-between mt-4 text-sm">
             <span className="text-gray-500">Forgot password?</span>

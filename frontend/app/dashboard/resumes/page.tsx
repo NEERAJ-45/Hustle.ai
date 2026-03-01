@@ -1,14 +1,36 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { FileText, Plus, Download, Edit, Trash2, Sparkles, Eye, Copy, BarChart3, CheckCircle } from "lucide-react"
-import { motion } from "framer-motion"
-import { AnimatedNumber } from "@/components/ui/animated-number"
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  FileText,
+  Plus,
+  Download,
+  Edit,
+  Trash2,
+  Sparkles,
+  Eye,
+  Copy,
+  BarChart3,
+  CheckCircle,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import { AnimatedNumber } from "@/components/ui/animated-number";
+import {
+  Bar,
+  BarChart,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
 const resumes = [
   {
@@ -40,9 +62,8 @@ const resumes = [
     applications: 3,
     successRate: 67,
     isPrimary: false,
-    import ResumesList from "@/components/dashboard/resumes/ResumesList";
   },
-]
+];
 
 const scoreData = [
   { category: "Keywords", score: 95 },
@@ -50,18 +71,24 @@ const scoreData = [
   { category: "Relevance", score: 88 },
   { category: "Length", score: 85 },
   { category: "Impact", score: 90 },
-]
+];
 
 export default function ResumesPage() {
-  const [selectedResume, setSelectedResume] = useState(resumes[0])
+  const [selectedResume, setSelectedResume] = useState(resumes[0]);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-r from-[#334e68] to-[#2563eb] text-white">
+      <div className="bg-linear-to-r from-[#334e68] to-[#2563eb] text-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+          >
             <h1 className="text-4xl font-bold mb-2">Resume Manager</h1>
-            <p className="text-white/80">Create, optimize, and track your resumes with AI assistance</p>
+            <p className="text-white/80">
+              Create, optimize, and track your resumes with AI assistance
+            </p>
             <Button className="bg-white text-[#334e68] hover:bg-white/90">
               <Plus className="w-4 h-4 mr-2" />
               Create New Resume
@@ -76,12 +103,7 @@ export default function ResumesPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
-      return (
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h1 className="text-2xl font-bold mb-6">Resumes</h1>
-          <ResumesList />
-        </div>
-      );
+        >
           {[
             { label: "Total Resumes", value: 3, icon: FileText },
             { label: "Avg Score", value: 91, suffix: "%", icon: BarChart3 },
@@ -97,12 +119,15 @@ export default function ResumesPage() {
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
                       <stat.icon className="w-5 h-5 text-[#2563eb]" />
                     </div>
                     <div>
                       <p className="text-2xl font-bold text-gray-900">
-                        <AnimatedNumber value={stat.value} suffix={stat.suffix} />
+                        <AnimatedNumber
+                          value={stat.value}
+                          suffix={stat.suffix}
+                        />
                       </p>
                       <p className="text-xs text-gray-600">{stat.label}</p>
                     </div>
@@ -130,26 +155,41 @@ export default function ResumesPage() {
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-start gap-4 flex-1">
-                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#334e68] to-[#2563eb] flex items-center justify-center flex-shrink-0">
+                        <div className="w-12 h-12 rounded-lg bg-linear-to-br from-[#334e68] to-[#2563eb] flex items-center justify-center shrink-0">
                           <FileText className="w-6 h-6 text-white" />
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-gray-900">{resume.name}</h3>
-                            {resume.isPrimary && <Badge className="bg-green-100 text-green-700 text-xs">Primary</Badge>}
+                            <h3 className="font-semibold text-gray-900">
+                              {resume.name}
+                            </h3>
+                            {resume.isPrimary && (
+                              <Badge className="bg-green-100 text-green-700 text-xs">
+                                Primary
+                              </Badge>
+                            )}
                           </div>
-                          <p className="text-sm text-gray-600 mb-3">Updated {resume.lastUpdated}</p>
+                          <p className="text-sm text-gray-600 mb-3">
+                            Updated {resume.lastUpdated}
+                          </p>
 
                           {/* Metrics */}
                           <div className="grid grid-cols-4 gap-4 mb-4">
                             <div>
-                              <p className="text-xs text-gray-600 mb-1">Score</p>
+                              <p className="text-xs text-gray-600 mb-1">
+                                Score
+                              </p>
                               <p className="text-lg font-bold text-gray-900">
-                                <AnimatedNumber value={resume.score} suffix="%" />
+                                <AnimatedNumber
+                                  value={resume.score}
+                                  suffix="%"
+                                />
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs text-gray-600 mb-1">Keywords</p>
+                              <p className="text-xs text-gray-600 mb-1">
+                                Keywords
+                              </p>
                               <p className="text-lg font-bold text-gray-900">
                                 <AnimatedNumber value={resume.keywords} />
                               </p>
@@ -161,9 +201,14 @@ export default function ResumesPage() {
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs text-gray-600 mb-1">Success</p>
+                              <p className="text-xs text-gray-600 mb-1">
+                                Success
+                              </p>
                               <p className="text-lg font-bold text-gray-900">
-                                <AnimatedNumber value={resume.successRate} suffix="%" />
+                                <AnimatedNumber
+                                  value={resume.successRate}
+                                  suffix="%"
+                                />
                               </p>
                             </div>
                           </div>
@@ -181,7 +226,10 @@ export default function ResumesPage() {
                                 }
                                 initial={{ width: 0 }}
                                 animate={{ width: `${resume.score}%` }}
-                                transition={{ duration: 1, delay: 0.3 + index * 0.1 }}
+                                transition={{
+                                  duration: 1,
+                                  delay: 0.3 + index * 0.1,
+                                }}
                                 style={{ height: "100%" }}
                               />
                             </div>
@@ -221,7 +269,11 @@ export default function ResumesPage() {
           {/* AI Analysis Sidebar */}
           <div className="space-y-6">
             {/* AI Score Breakdown */}
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+            >
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -237,7 +289,7 @@ export default function ResumesPage() {
                         color: "hsl(217, 91%, 60%)",
                       },
                     }}
-                    className="h-[250px]"
+                    className="h-62.5"
                   >
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={scoreData} layout="vertical">
@@ -245,7 +297,11 @@ export default function ResumesPage() {
                         <XAxis type="number" domain={[0, 100]} />
                         <YAxis type="category" dataKey="category" width={80} />
                         <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="score" fill="var(--color-score)" radius={4} />
+                        <Bar
+                          dataKey="score"
+                          fill="var(--color-score)"
+                          radius={4}
+                        />
                       </BarChart>
                     </ResponsiveContainer>
                   </ChartContainer>
@@ -254,8 +310,12 @@ export default function ResumesPage() {
             </motion.div>
 
             {/* AI Suggestions */}
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}>
-              <Card className="bg-gradient-to-br from-[#334e68] to-[#2563eb] text-white border-0">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <Card className="bg-linear-to-br from-[#334e68] to-[#2563eb] text-white border-0">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Sparkles className="w-5 h-5" />
@@ -275,24 +335,39 @@ export default function ResumesPage() {
                       transition={{ delay: 0.6 + index * 0.1 }}
                       className="flex items-start gap-3 bg-white/10 rounded-lg p-3"
                     >
-                      <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                      <CheckCircle className="w-5 h-5 shrink-0 mt-0.5" />
                       <p className="text-sm">{suggestion}</p>
                     </motion.div>
                   ))}
-                  <Button className="w-full bg-white text-[#334e68] hover:bg-white/90 mt-4">Apply All</Button>
+                  <Button className="w-full bg-white text-[#334e68] hover:bg-white/90 mt-4">
+                    Apply All
+                  </Button>
                 </CardContent>
               </Card>
             </motion.div>
 
             {/* Resume Templates */}
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }}>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.6 }}
+            >
               <Card>
                 <CardHeader>
                   <CardTitle>Templates</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {["Modern Tech", "Executive", "Creative", "ATS-Optimized"].map((template) => (
-                    <Button key={template} variant="outline" className="w-full justify-start bg-transparent">
+                  {[
+                    "Modern Tech",
+                    "Executive",
+                    "Creative",
+                    "ATS-Optimized",
+                  ].map((template) => (
+                    <Button
+                      key={template}
+                      variant="outline"
+                      className="w-full justify-start bg-transparent"
+                    >
                       <FileText className="w-4 h-4 mr-2" />
                       {template}
                     </Button>
@@ -304,5 +379,5 @@ export default function ResumesPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

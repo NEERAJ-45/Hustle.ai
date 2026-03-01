@@ -1,4 +1,5 @@
 "use client"
+  import ApplicationsList from "@/components/dashboard/applications/ApplicationsList";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -29,7 +30,6 @@ const applications = [
     status: "Interview Scheduled",
     stage: "Technical Interview",
     appliedDate: "2024-01-15",
-  import ApplicationsList from "@/components/dashboard/applications/ApplicationsList";
     color: "green",
   },
   {

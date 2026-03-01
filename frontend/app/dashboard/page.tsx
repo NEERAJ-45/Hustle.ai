@@ -37,7 +37,7 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-4"
           >
-            <h1 className="text-3xl font-bold">Welcome back, Alex!</h1>
+            <h1 className="text-3xl font-bold">Welcome back, Neeraj!</h1>
             <p className="text-white/80">
               Your job search is performing great. Keep up the momentum!
             </p>
