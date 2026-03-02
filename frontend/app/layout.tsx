@@ -3,7 +3,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { ToastContainer } from "react-toastify";
+import { getServerSession } from "next-auth";
 import { AuthProvider } from "@/components/auth-provider";
+import { authOptions } from "@/lib/auth-options";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 
@@ -34,15 +36,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang="en" className="scroll-smooth">
       <body className={`font-sans antialiased`}>
-        <AuthProvider>
+        <AuthProvider session={session}>
           {children}
           <ToastContainer
             position="top-right"

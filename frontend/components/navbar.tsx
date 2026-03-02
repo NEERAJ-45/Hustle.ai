@@ -177,9 +177,13 @@ export function Navbar() {
                   className="w-full gap-2 border-gray-300 hover:border-[#ef4444] hover:text-[#ef4444] rounded-lg"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <Link href="/login">
-                    <User className="w-4 h-4" />
-                    Sign In
+                  <Link href={isAuthenticated ? "/dashboard" : "/login"}>
+                    {isAuthenticated ? (
+                      <LayoutDashboard className="w-4 h-4" />
+                    ) : (
+                      <User className="w-4 h-4" />
+                    )}
+                    {isAuthenticated ? "Go to Dashboard" : "Sign In"}
                   </Link>
                 </Button>
                 {!isAuthenticated && (

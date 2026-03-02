@@ -6,6 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Briefcase,
   Sparkles,
   Target,
@@ -19,10 +26,17 @@ import {
   DollarSign,
   Clock,
   Eye,
+  Loader2,
   ChevronLeft,
   ChevronRight,
+  Mail,
+  MessageCircle,
+  Linkedin,
+  Link2,
+  Share2,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "react-toastify";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { Line, LineChart, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
@@ -30,7 +44,19 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { fetchJobsPaginated, type JobListItem } from "@/lib/api-client";
+import {
+  fetchJobById,
+  fetchJobsPaginated,
+  type JobDetailedJD,
+  type JobListItem,
+} from "@/lib/api-client";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface JobListing {
   id: string;
@@ -45,7 +71,16 @@ interface JobListing {
   postedAt?: string;
 }
 
-const PAGE_SIZE = 10;
+interface JobDetailsModalState {
+  isOpen: boolean;
+  isLoading: boolean;
+  error: string | null;
+  details: JobDetailedJD | null;
+  jobId: string | null;
+}
+
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
+const SAVED_JOBS_STORAGE_KEY = "hustleai.savedJobIds";
 
 function formatSalary(job: JobListItem) {
   const min = job.salary?.min;
@@ -137,7 +172,17 @@ const chartConfig = {
   saved: { label: "Saved", color: "hsl(217, 91%, 60%)" },
 };
 
-function JobListingsList({ data }: { data?: JobListing[] }) {
+function JobListingsList({
+  data,
+  onViewDetails,
+  savedJobIds,
+  onToggleSave,
+}: {
+  data?: JobListing[];
+  onViewDetails: (jobId: string) => void;
+  savedJobIds: Set<string>;
+  onToggleSave: (jobId: string) => void;
+}) {
   const displayData = data || [];
 
   if (displayData.length === 0) {
@@ -152,99 +197,146 @@ function JobListingsList({ data }: { data?: JobListing[] }) {
 
   return (
     <div className="space-y-4">
-      {displayData.map((job, index) => (
-        <motion.div
-          key={job.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: index * 0.08 }}
-        >
-          <Card className="hover:shadow-md transition-shadow">
-            <CardContent className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg text-foreground">
-                    {job.title}
-                  </h3>
-                  <p className="text-muted-foreground text-sm">{job.company}</p>
-                  <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground flex-wrap">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="h-3.5 w-3.5" />
-                      {job.location}
-                    </span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <DollarSign className="h-3.5 w-3.5" />
-                      {job.salary}
-                    </span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <Briefcase className="h-3.5 w-3.5" />
-                      {job.type}
-                    </span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5" />
-                      {job.posted}
-                    </span>
+      {displayData.map((job, index) => {
+        const isSaved = savedJobIds.has(job.id);
+
+        return (
+          <motion.div
+            key={job.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.08 }}
+          >
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="p-5">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg text-foreground">
+                      {job.title}
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      {job.company}
+                    </p>
+                    <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground flex-wrap">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-3.5 w-3.5" />
+                        {job.location}
+                      </span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1">
+                        <DollarSign className="h-3.5 w-3.5" />
+                        {job.salary}
+                      </span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1">
+                        <Briefcase className="h-3.5 w-3.5" />
+                        {job.type}
+                      </span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3.5 w-3.5" />
+                        {job.posted}
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <Badge
-                  className={`ml-3 ${
-                    (job.match ?? 0) >= 90
-                      ? "bg-green-100 text-green-700 border-green-200"
-                      : (job.match ?? 0) >= 80
-                        ? "bg-purple-100 text-purple-700 border-purple-200"
-                        : "bg-amber-100 text-amber-700 border-amber-200"
-                  }`}
-                >
-                  {typeof job.match === "number"
-                    ? `${job.match}% Match`
-                    : "Match pending"}
-                </Badge>
-              </div>
-
-              <div className="flex items-center gap-2 mb-4 flex-wrap">
-                {job.skills.map((skill) => (
-                  <Badge key={skill} variant="secondary" className="text-xs">
-                    {skill}
+                  <Badge
+                    className={`ml-3 ${
+                      (job.match ?? 0) >= 90
+                        ? "bg-green-100 text-green-700 border-green-200"
+                        : (job.match ?? 0) >= 80
+                          ? "bg-purple-100 text-purple-700 border-purple-200"
+                          : "bg-amber-100 text-amber-700 border-amber-200"
+                    }`}
+                  >
+                    {typeof job.match === "number"
+                      ? `${job.match}% Match`
+                      : "Match pending"}
                   </Badge>
-                ))}
-              </div>
+                </div>
 
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">
-                  <Eye className="h-3.5 w-3.5 mr-1" />
-                  View Details
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Bookmark className="h-3.5 w-3.5 mr-1" />
-                  Save
-                </Button>
-                <Button size="sm">
-                  <Send className="h-3.5 w-3.5 mr-1" />
-                  Apply
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      ))}
+                <div className="flex items-center gap-2 mb-4 flex-wrap">
+                  {job.skills.map((skill) => (
+                    <Badge key={skill} variant="secondary" className="text-xs">
+                      {skill}
+                    </Badge>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onViewDetails(job.id)}
+                  >
+                    <Eye className="h-3.5 w-3.5 mr-1" />
+                    View Details
+                  </Button>
+                  <Button
+                    variant={isSaved ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => onToggleSave(job.id)}
+                  >
+                    <Bookmark className="h-3.5 w-3.5 mr-1" />
+                    {isSaved ? "Saved" : "Save"}
+                  </Button>
+                  <Button size="sm">
+                    <Send className="h-3.5 w-3.5 mr-1" />
+                    Apply
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        );
+      })}
     </div>
   );
 }
 
 export default function JobsPage() {
   const [activeTab, setActiveTab] = useState("all");
+  const [pageSize, setPageSize] = useState(10);
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [loadedPages, setLoadedPages] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalJobs, setTotalJobs] = useState(0);
+  const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [jobDetailsModal, setJobDetailsModal] = useState<JobDetailsModalState>({
+    isOpen: false,
+    isLoading: false,
+    error: null,
+    details: null,
+    jobId: null,
+  });
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(SAVED_JOBS_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        setSavedJobIds(
+          parsed.filter((id): id is string => typeof id === "string"),
+        );
+      }
+    } catch {
+      setSavedJobIds([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      SAVED_JOBS_STORAGE_KEY,
+      JSON.stringify(savedJobIds),
+    );
+  }, [savedJobIds]);
+
+  const savedJobIdsSet = useMemo(() => new Set(savedJobIds), [savedJobIds]);
 
   const loadJobsPage = useCallback(
     async (page: number, mode: "replace" | "append") => {
@@ -259,7 +351,7 @@ export default function JobsPage() {
       try {
         const response = await fetchJobsPaginated({
           page,
-          limit: PAGE_SIZE,
+          limit: pageSize,
           isRemote: activeTab === "remote" ? true : undefined,
         });
 
@@ -290,7 +382,7 @@ export default function JobsPage() {
         setIsLoadingMore(false);
       }
     },
-    [activeTab],
+    [activeTab, pageSize],
   );
 
   useEffect(() => {
@@ -301,14 +393,14 @@ export default function JobsPage() {
     setTotalJobs(0);
     setError(null);
     void loadJobsPage(1, "replace");
-  }, [activeTab, loadJobsPage]);
+  }, [activeTab, pageSize, loadJobsPage]);
 
   const maxLoadedPage = useMemo(
     () => (loadedPages.length ? Math.max(...loadedPages) : 0),
     [loadedPages],
   );
 
-  const hasMorePages = maxLoadedPage < totalPages;
+  const hasMorePages = activeTab !== "saved" && maxLoadedPage < totalPages;
 
   const ensurePageLoaded = useCallback(
     async (targetPage: number) => {
@@ -337,9 +429,27 @@ export default function JobsPage() {
     return () => observer.disconnect();
   }, [hasMorePages, isLoading, isLoadingMore, loadJobsPage, maxLoadedPage]);
 
-  const pageStart = (currentPage - 1) * PAGE_SIZE;
-  const pageEnd = pageStart + PAGE_SIZE;
-  const currentPageJobs = jobs.slice(pageStart, pageEnd);
+  const filteredJobs = useMemo(() => {
+    if (activeTab === "saved") {
+      return jobs.filter((job) => savedJobIdsSet.has(job.id));
+    }
+
+    return jobs;
+  }, [activeTab, jobs, savedJobIdsSet]);
+
+  const displayTotalJobs =
+    activeTab === "saved" ? filteredJobs.length : totalJobs;
+  const displayTotalPages = Math.max(1, Math.ceil(displayTotalJobs / pageSize));
+
+  useEffect(() => {
+    if (currentPage > displayTotalPages) {
+      setCurrentPage(displayTotalPages);
+    }
+  }, [currentPage, displayTotalPages]);
+
+  const pageStart = (currentPage - 1) * pageSize;
+  const pageEnd = pageStart + pageSize;
+  const currentPageJobs = filteredJobs.slice(pageStart, pageEnd);
 
   const stats = useMemo(() => {
     const today = new Date();
@@ -361,22 +471,151 @@ export default function JobsPage() {
       total: totalJobs,
       newToday,
       matched: jobs.filter((job) => (job.match ?? 0) >= 80).length,
-      saved: 0,
+      saved: savedJobIds.length,
       applied: remote,
     };
-  }, [jobs, totalJobs]);
+  }, [jobs, totalJobs, savedJobIds.length]);
 
   const handleNextPage = async () => {
-    if (currentPage >= totalPages) return;
+    if (currentPage >= displayTotalPages) return;
 
     const nextPage = currentPage + 1;
-    await ensurePageLoaded(nextPage);
+    if (activeTab !== "saved") {
+      await ensurePageLoaded(nextPage);
+    }
     setCurrentPage(nextPage);
   };
 
   const handlePreviousPage = () => {
     if (currentPage <= 1) return;
     setCurrentPage((prev) => prev - 1);
+  };
+
+  const handleToggleSave = (jobId: string) => {
+    setSavedJobIds((prev) => {
+      if (prev.includes(jobId)) {
+        toast.info("Removed from saved jobs.");
+        return prev.filter((id) => id !== jobId);
+      }
+
+      toast.success("Job saved.");
+      return [...prev, jobId];
+    });
+  };
+
+  const handleViewDetails = async (jobId: string) => {
+    setJobDetailsModal({
+      isOpen: true,
+      isLoading: true,
+      error: null,
+      details: null,
+      jobId,
+    });
+
+    try {
+      const detailsResponse = await fetchJobById(jobId);
+      setJobDetailsModal({
+        isOpen: true,
+        isLoading: false,
+        error: null,
+        details: detailsResponse.detailedJD,
+        jobId,
+      });
+    } catch (err) {
+      setJobDetailsModal({
+        isOpen: true,
+        isLoading: false,
+        error:
+          err instanceof Error ? err.message : "Failed to load job details",
+        details: null,
+        jobId,
+      });
+    }
+  };
+
+  const getShareData = () => {
+    if (!jobDetailsModal.details) return null;
+
+    const baseUrl =
+      typeof window !== "undefined"
+        ? new URL(window.location.href)
+        : new URL("http://localhost:3000/dashboard/jobs");
+
+    if (jobDetailsModal.jobId) {
+      baseUrl.searchParams.set("jobId", jobDetailsModal.jobId);
+    }
+
+    const url = baseUrl.toString();
+    const text = `Check out this opening: ${jobDetailsModal.details.title} at ${jobDetailsModal.details.companyName}`;
+
+    return { url, text };
+  };
+
+  const openShareUrl = (url: string) => {
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const handleShareWhatsApp = () => {
+    const share = getShareData();
+    if (!share) return;
+    openShareUrl(
+      `https://wa.me/?text=${encodeURIComponent(`${share.text}\n${share.url}`)}`,
+    );
+  };
+
+  const handleShareEmail = () => {
+    const share = getShareData();
+    if (!share) return;
+    window.location.href = `mailto:?subject=${encodeURIComponent(share.text)}&body=${encodeURIComponent(`${share.text}\n\n${share.url}`)}`;
+  };
+
+  const handleShareLinkedIn = () => {
+    const share = getShareData();
+    if (!share) return;
+    openShareUrl(
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(share.url)}`,
+    );
+  };
+
+  const handleShareX = () => {
+    const share = getShareData();
+    if (!share) return;
+    openShareUrl(
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(share.text)}&url=${encodeURIComponent(share.url)}`,
+    );
+  };
+
+  const handleCopyShareLink = async () => {
+    const share = getShareData();
+    if (!share) return;
+
+    if (!navigator?.clipboard) {
+      toast.error("Clipboard is not available on this browser.");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(share.url);
+      toast.success("Link copied to clipboard.");
+    } catch {
+      toast.error("Failed to copy link. Please try again.");
+    }
+  };
+
+  const handleShareOther = async () => {
+    const share = getShareData();
+    if (!share) return;
+
+    if (navigator.share) {
+      await navigator.share({
+        title: jobDetailsModal.details?.title,
+        text: share.text,
+        url: share.url,
+      });
+      return;
+    }
+
+    await handleCopyShareLink();
   };
 
   return (
@@ -474,7 +713,12 @@ export default function JobsPage() {
                         Loading jobs...
                       </div>
                     ) : (
-                      <JobListingsList data={currentPageJobs} />
+                      <JobListingsList
+                        data={currentPageJobs}
+                        onViewDetails={handleViewDetails}
+                        savedJobIds={savedJobIdsSet}
+                        onToggleSave={handleToggleSave}
+                      />
                     )}
                   </TabsContent>
                   <TabsContent value="best">
@@ -487,7 +731,12 @@ export default function JobsPage() {
                         Loading jobs...
                       </div>
                     ) : (
-                      <JobListingsList data={currentPageJobs} />
+                      <JobListingsList
+                        data={currentPageJobs}
+                        onViewDetails={handleViewDetails}
+                        savedJobIds={savedJobIdsSet}
+                        onToggleSave={handleToggleSave}
+                      />
                     )}
                   </TabsContent>
                   <TabsContent value="remote">
@@ -500,7 +749,12 @@ export default function JobsPage() {
                         Loading jobs...
                       </div>
                     ) : (
-                      <JobListingsList data={currentPageJobs} />
+                      <JobListingsList
+                        data={currentPageJobs}
+                        onViewDetails={handleViewDetails}
+                        savedJobIds={savedJobIdsSet}
+                        onToggleSave={handleToggleSave}
+                      />
                     )}
                   </TabsContent>
                   <TabsContent value="saved">
@@ -513,16 +767,41 @@ export default function JobsPage() {
                         Loading jobs...
                       </div>
                     ) : (
-                      <JobListingsList data={currentPageJobs} />
+                      <JobListingsList
+                        data={currentPageJobs}
+                        onViewDetails={handleViewDetails}
+                        savedJobIds={savedJobIdsSet}
+                        onToggleSave={handleToggleSave}
+                      />
                     )}
                   </TabsContent>
                 </Tabs>
 
-                <div className="mt-4 flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground">
-                    Page {currentPage} of {Math.max(totalPages, 1)} •{" "}
-                    {totalJobs} jobs
-                  </p>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      Jobs per page
+                    </span>
+                    <Select
+                      value={String(pageSize)}
+                      onValueChange={(value) => setPageSize(Number(value))}
+                    >
+                      <SelectTrigger size="sm" className="w-22">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PAGE_SIZE_OPTIONS.map((option) => (
+                          <SelectItem key={option} value={String(option)}>
+                            {option}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Page {currentPage} of {displayTotalPages} •{" "}
+                      {displayTotalJobs} jobs
+                    </p>
+                  </div>
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
@@ -538,7 +817,9 @@ export default function JobsPage() {
                       size="sm"
                       onClick={handleNextPage}
                       disabled={
-                        currentPage >= totalPages || isLoading || isLoadingMore
+                        currentPage >= displayTotalPages ||
+                        isLoading ||
+                        (activeTab !== "saved" && isLoadingMore)
                       }
                     >
                       Next
@@ -653,6 +934,207 @@ export default function JobsPage() {
           </div>
         </div>
       </div>
+
+      <Dialog
+        open={jobDetailsModal.isOpen}
+        onOpenChange={(open) =>
+          setJobDetailsModal((prev) => ({ ...prev, isOpen: open }))
+        }
+      >
+        <DialogContent className="max-w-6xl w-[96vw] min-w-[50vw] min-h-[50vh] max-h-[95vh] overflow-y-auto">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Job Details</DialogTitle>
+            <DialogDescription>
+              Detailed job description and company information
+            </DialogDescription>
+          </DialogHeader>
+
+          {jobDetailsModal.isLoading ? (
+            <div className="py-10 text-sm text-muted-foreground flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading job details...
+            </div>
+          ) : jobDetailsModal.error ? (
+            <div className="py-10 text-sm text-destructive">
+              {jobDetailsModal.error}
+            </div>
+          ) : jobDetailsModal.details ? (
+            <div className="space-y-6">
+              <div className="space-y-1">
+                {jobDetailsModal.details.companyLogo ? (
+                  <img
+                    src={jobDetailsModal.details.companyLogo}
+                    alt={`${jobDetailsModal.details.companyName} logo`}
+                    className="h-12 w-auto object-contain"
+                  />
+                ) : null}
+                <p className="font-semibold text-lg">
+                  {jobDetailsModal.details.companyName}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {jobDetailsModal.details.companyWebsite}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="text-sm text-muted-foreground hover:text-foreground"
+                onClick={() =>
+                  setJobDetailsModal((prev) => ({ ...prev, isOpen: false }))
+                }
+              >
+                {jobDetailsModal.details.backToOpeningsLabel}
+              </button>
+
+              <div>
+                <h2 className="text-2xl font-semibold">
+                  {jobDetailsModal.details.title}
+                </h2>
+                <p className="text-muted-foreground mt-1">
+                  {jobDetailsModal.details.subtitle}
+                </p>
+              </div>
+
+              <div className="space-y-4 text-sm leading-6">
+                <p>
+                  <span className="font-semibold">Role - </span>
+                  {jobDetailsModal.details.roleTitle}
+                </p>
+                <p>
+                  <span className="font-semibold">Experience - </span>
+                  {jobDetailsModal.details.experienceRange}
+                </p>
+
+                {jobDetailsModal.details.experienceDetails?.length ? (
+                  <div>
+                    <p className="font-semibold mb-2">Experience Details:</p>
+                    <ul className="list-disc pl-5 space-y-1 max-h-40 overflow-y-auto pr-2">
+                      {jobDetailsModal.details.experienceDetails.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
+                <p>
+                  <span className="font-semibold">Location - </span>
+                  {jobDetailsModal.details.locationText}
+                </p>
+
+                <div>
+                  <p className="font-semibold mb-2">Job Description :</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    {jobDetailsModal.details.responsibilities.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <p className="font-semibold mb-2">Job Specifications:</p>
+                  <ul className="list-disc pl-5 space-y-1 max-h-56 overflow-y-auto pr-2">
+                    {jobDetailsModal.details.specifications.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <p className="font-semibold mb-2">
+                    About {jobDetailsModal.details.companyName}
+                  </p>
+                  <p>{jobDetailsModal.details.aboutCompany}</p>
+                  {jobDetailsModal.details.aboutHighlights?.length ? (
+                    <ul className="list-disc pl-5 space-y-1 mt-3 max-h-40 overflow-y-auto pr-2">
+                      {jobDetailsModal.details.aboutHighlights.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  <p className="mt-2">
+                    Website: {jobDetailsModal.details.companyWebsite}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="text-sm text-muted-foreground hover:text-foreground"
+                onClick={() =>
+                  setJobDetailsModal((prev) => ({ ...prev, isOpen: false }))
+                }
+              >
+                {jobDetailsModal.details.backToOpeningsLabel}
+              </button>
+
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">
+                  {jobDetailsModal.details.shareText}
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleShareWhatsApp}
+                  >
+                    <MessageCircle className="h-4 w-4 mr-1" />
+                    WhatsApp
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleShareEmail}
+                  >
+                    <Mail className="h-4 w-4 mr-1" />
+                    Email
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleShareLinkedIn}
+                  >
+                    <Linkedin className="h-4 w-4 mr-1" />
+                    LinkedIn
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleShareX}
+                  >
+                    X
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void handleCopyShareLink()}
+                  >
+                    <Link2 className="h-4 w-4 mr-1" />
+                    Copy Link
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void handleShareOther()}
+                  >
+                    <Share2 className="h-4 w-4 mr-1" />
+                    Other
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">powered by</p>
+                <p className="text-sm font-medium">
+                  {jobDetailsModal.details.poweredBy}
+                </p>
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

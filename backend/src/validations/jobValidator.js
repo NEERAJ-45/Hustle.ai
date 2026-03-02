@@ -14,6 +14,21 @@ exports.createJobSchema = Joi.object({
   }).required(),
   description: Joi.string().max(10000).required(),
   requirements: Joi.string().max(5000).optional(),
+  detailedJD: Joi.object({
+    roleTitle: Joi.string().max(200).optional(),
+    experienceRange: Joi.string().max(100).optional(),
+    experienceDetails: Joi.array().items(Joi.string().max(500)).optional(),
+    locationText: Joi.string().max(200).optional(),
+    department: Joi.string().max(120).optional(),
+    responsibilities: Joi.array().items(Joi.string().max(500)).optional(),
+    specifications: Joi.array().items(Joi.string().max(500)).optional(),
+    aboutCompany: Joi.string().max(4000).optional(),
+    aboutHighlights: Joi.array().items(Joi.string().max(500)).optional(),
+    website: Joi.string().uri().optional(),
+    backToOpeningsLabel: Joi.string().max(120).optional(),
+    shareText: Joi.string().max(200).optional(),
+    poweredBy: Joi.string().max(120).optional(),
+  }).optional(),
   location: Joi.object({
     city: Joi.string().optional(),
     state: Joi.string().optional(),
@@ -41,7 +56,7 @@ exports.createJobSchema = Joi.object({
           .valid("Required", "Preferred", "Nice-to-have")
           .optional(),
         minYearsExperience: Joi.number().min(0).optional(),
-      })
+      }),
     )
     .optional(),
   salary: Joi.object({
@@ -72,7 +87,7 @@ exports.createJobSchema = Joi.object({
 // Same schema as create, but all fields optional for update
 exports.updateJobSchema = exports.createJobSchema.fork(
   Object.keys(exports.createJobSchema.describe().keys),
-  (field) => field.optional()
+  (field) => field.optional(),
 );
 
 // Schema for validating :id route param

@@ -119,6 +119,29 @@ export interface JobListItem {
   }>;
 }
 
+export interface JobDetailedJD {
+  companyName: string;
+  companyLogo: string;
+  companyWebsite: string;
+  backToOpeningsLabel: string;
+  title: string;
+  subtitle: string;
+  roleTitle: string;
+  experienceRange: string;
+  experienceDetails: string[];
+  locationText: string;
+  responsibilities: string[];
+  specifications: string[];
+  aboutCompany: string;
+  aboutHighlights: string[];
+  shareText: string;
+  poweredBy: string;
+}
+
+export interface JobDetailsItem extends JobListItem {
+  detailedJD: JobDetailedJD;
+}
+
 export interface JobsPageResponse {
   data: JobListItem[];
   meta: {
@@ -239,6 +262,27 @@ export async function fetchJobs(params?: {
   limit?: number;
 }): Promise<JobListItem[]> {
   const result = await fetchJobsPaginated(params);
+  return result.data;
+}
+
+export async function fetchJobById(id: string): Promise<JobDetailsItem> {
+  const response = await fetch(`${BASE_URL}/api/v1/jobs/${id}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch job details: ${response.statusText}`);
+  }
+
+  const result: ApiResponse<JobDetailsItem> = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.message || "Failed to load job details");
+  }
+
   return result.data;
 }
 
