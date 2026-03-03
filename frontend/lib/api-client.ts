@@ -105,6 +105,23 @@ export interface JobListItem {
     state?: string;
     country?: string;
     isRemote?: boolean;
+    workArrangement?: "Remote" | "Hybrid" | "On-site";
+    coordinates?: {
+      latitude?: number;
+      longitude?: number;
+    };
+  };
+  locationDetails?: {
+    city: string;
+    state: string;
+    country: string;
+    label: string;
+    coordinates: {
+      latitude: number;
+      longitude: number;
+    } | null;
+    isRemote: boolean;
+    workArrangement: string;
   };
   jobType?: string;
   salary?: {
@@ -142,12 +159,82 @@ export interface JobDetailsItem extends JobListItem {
   detailedJD: JobDetailedJD;
 }
 
+export interface JobsQueryMetadata {
+  generatedAt: string;
+  appliedFilters: {
+    search: string;
+    location: string;
+    isRemote: boolean;
+  };
+  stats: {
+    remoteCount: number;
+    nonRemoteCount: number;
+  };
+  topLocations: Array<{
+    name: string;
+    count: number;
+  }>;
+  jobTypeDistribution: Array<{
+    type: string;
+    count: number;
+  }>;
+  locationCoverage?: {
+    withCoordinates: number;
+    withoutCoordinates: number;
+  };
+}
+
+export interface JobsMapPoint {
+  location: {
+    city: string;
+    state: string;
+    country: string;
+    label: string;
+    coordinates: {
+      latitude: number;
+      longitude: number;
+    };
+  };
+  totalJobs: number;
+  jobs: Array<{
+    id: string;
+    title: string;
+    companyName: string;
+    jobType: string;
+    isRemote: boolean;
+    workArrangement?: string;
+    postedDate: string | null;
+    applicationUrl: string;
+  }>;
+}
+
+export interface JobsMapDataResponse {
+  data: JobsMapPoint[];
+  meta: {
+    generatedAt: string;
+    totalMarkers: number;
+    totalJobs: number;
+    appliedFilters: {
+      search: string;
+      location: string;
+      isRemote: boolean;
+    };
+    bounds: {
+      minLatitude: number | null;
+      maxLatitude: number | null;
+      minLongitude: number | null;
+      maxLongitude: number | null;
+    };
+  };
+}
+
 export interface JobsPageResponse {
   data: JobListItem[];
   meta: {
     total: number;
     page: number;
     totalPages: number;
+    metadata?: JobsQueryMetadata;
   };
 }
 
@@ -330,6 +417,64 @@ export async function fetchJobsPaginated(params?: {
       total: result.meta?.total ?? 0,
       page: result.meta?.page ?? params?.page ?? 1,
       totalPages: result.meta?.totalPages ?? 1,
+      metadata: (result.meta as JobsPageResponse["meta"] | undefined)
+        ?.metadata,
+    },
+  };
+}
+
+export async function fetchJobsMapData(params?: {
+  search?: string;
+  location?: string;
+  isRemote?: boolean;
+}): Promise<JobsMapDataResponse> {
+  const query = new URLSearchParams();
+
+  if (params?.search) query.set("search", params.search);
+  if (params?.location) query.set("location", params.location);
+  if (typeof params?.isRemote === "boolean") {
+    query.set("isRemote", String(params.isRemote));
+  }
+
+  const path = query.toString()
+    ? `/api/v1/jobs/map?${query.toString()}`
+    : "/api/v1/jobs/map";
+
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch map jobs: ${response.statusText}`);
+  }
+
+  const result: ApiResponse<JobsMapPoint[]> & { meta?: JobsMapDataResponse["meta"] } =
+    await response.json();
+
+  if (!result.success) {
+    throw new Error(result.message || "Failed to load map jobs");
+  }
+
+  return {
+    data: result.data || [],
+    meta: {
+      generatedAt: result.meta?.generatedAt || new Date().toISOString(),
+      totalMarkers: result.meta?.totalMarkers ?? 0,
+      totalJobs: result.meta?.totalJobs ?? 0,
+      appliedFilters: {
+        search: result.meta?.appliedFilters?.search || "",
+        location: result.meta?.appliedFilters?.location || "",
+        isRemote: Boolean(result.meta?.appliedFilters?.isRemote),
+      },
+      bounds: {
+        minLatitude: result.meta?.bounds?.minLatitude ?? null,
+        maxLatitude: result.meta?.bounds?.maxLatitude ?? null,
+        minLongitude: result.meta?.bounds?.minLongitude ?? null,
+        maxLongitude: result.meta?.bounds?.maxLongitude ?? null,
+      },
     },
   };
 }

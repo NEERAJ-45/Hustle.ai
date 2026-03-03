@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -49,6 +51,8 @@ import {
   fetchJobsPaginated,
   type JobDetailedJD,
   type JobListItem,
+  type JobsMapPoint,
+  type JobsQueryMetadata,
 } from "@/lib/api-client";
 import {
   Dialog,
@@ -81,6 +85,12 @@ interface JobDetailsModalState {
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 const SAVED_JOBS_STORAGE_KEY = "hustleai.savedJobIds";
+const JobsLocationMap = dynamic(
+  () => import("@/components/dashboard/jobs/JobsLocationMap"),
+  {
+    ssr: false,
+  },
+);
 
 function formatSalary(job: JobListItem) {
   const min = job.salary?.min;
@@ -295,8 +305,14 @@ function JobListingsList({
 
 export default function JobsPage() {
   const [activeTab, setActiveTab] = useState("all");
+  const [searchInput, setSearchInput] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [locationTerm, setLocationTerm] = useState("");
+  const [mapLocationInput, setMapLocationInput] = useState("");
+  const [isMapOpen, setIsMapOpen] = useState(false);
   const [pageSize, setPageSize] = useState(10);
   const [jobs, setJobs] = useState<JobListing[]>([]);
+  const [jobsRaw, setJobsRaw] = useState<JobListItem[]>([]);
   const [loadedPages, setLoadedPages] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -305,6 +321,9 @@ export default function JobsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [jobsMetadata, setJobsMetadata] = useState<JobsQueryMetadata | null>(
+    null,
+  );
   const [jobDetailsModal, setJobDetailsModal] = useState<JobDetailsModalState>({
     isOpen: false,
     isLoading: false,
@@ -313,6 +332,14 @@ export default function JobsPage() {
     jobId: null,
   });
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setSearchTerm(searchInput.trim());
+    }, 350);
+
+    return () => window.clearTimeout(timeout);
+  }, [searchInput]);
 
   useEffect(() => {
     try {
@@ -352,6 +379,8 @@ export default function JobsPage() {
         const response = await fetchJobsPaginated({
           page,
           limit: pageSize,
+          search: searchTerm || undefined,
+          location: locationTerm || undefined,
           isRemote: activeTab === "remote" ? true : undefined,
         });
 
@@ -365,6 +394,16 @@ export default function JobsPage() {
           return [...prev, ...deduped];
         });
 
+        setJobsRaw((prev) => {
+          if (!isAppend) return response.data || [];
+
+          const existingIds = new Set(prev.map((job) => job._id));
+          const deduped = (response.data || []).filter(
+            (job) => !existingIds.has(job._id),
+          );
+          return [...prev, ...deduped];
+        });
+
         setLoadedPages((prev) => {
           if (prev.includes(page)) return prev;
           return [...prev, page].sort((a, b) => a - b);
@@ -372,6 +411,7 @@ export default function JobsPage() {
 
         setTotalPages(response.meta.totalPages || 1);
         setTotalJobs(response.meta.total || mapped.length);
+        setJobsMetadata(response.meta.metadata || null);
         setError(null);
       } catch (err) {
         const message =
@@ -382,11 +422,12 @@ export default function JobsPage() {
         setIsLoadingMore(false);
       }
     },
-    [activeTab, pageSize],
+    [activeTab, locationTerm, pageSize, searchTerm],
   );
 
   useEffect(() => {
     setJobs([]);
+    setJobsRaw([]);
     setLoadedPages([]);
     setCurrentPage(1);
     setTotalPages(1);
@@ -394,6 +435,86 @@ export default function JobsPage() {
     setError(null);
     void loadJobsPage(1, "replace");
   }, [activeTab, pageSize, loadJobsPage]);
+
+  const mapPoints = useMemo<JobsMapPoint[]>(() => {
+    const source =
+      activeTab === "saved"
+        ? jobsRaw.filter((job) => savedJobIdsSet.has(job._id))
+        : jobsRaw;
+
+    const grouped = new Map<string, JobsMapPoint>();
+
+    for (const job of source) {
+      const coordinates =
+        job.locationDetails?.coordinates ||
+        (job.location?.coordinates?.latitude != null &&
+        job.location?.coordinates?.longitude != null
+          ? {
+              latitude: job.location.coordinates.latitude,
+              longitude: job.location.coordinates.longitude,
+            }
+          : null);
+
+      if (!coordinates) continue;
+
+      const city = job.locationDetails?.city || job.location?.city || "";
+      const state = job.locationDetails?.state || job.location?.state || "";
+      const country =
+        job.locationDetails?.country || job.location?.country || "";
+      const label =
+        job.locationDetails?.label ||
+        [city, state, country].filter(Boolean).join(", ") ||
+        "Location not specified";
+      const key = `${coordinates.latitude}:${coordinates.longitude}:${label}`;
+
+      if (!grouped.has(key)) {
+        grouped.set(key, {
+          location: {
+            city,
+            state,
+            country,
+            label,
+            coordinates,
+          },
+          totalJobs: 0,
+          jobs: [],
+        });
+      }
+
+      const group = grouped.get(key);
+      if (!group) continue;
+
+      group.totalJobs += 1;
+      group.jobs.push({
+        id: job._id,
+        title: job.title || "Untitled Role",
+        companyName: job.company?.name || "Unknown Company",
+        jobType: job.jobType || "N/A",
+        isRemote: Boolean(
+          job.locationDetails?.isRemote || job.location?.isRemote,
+        ),
+        workArrangement:
+          job.locationDetails?.workArrangement ||
+          job.location?.workArrangement ||
+          "On-site",
+        postedDate: job.postedDate || null,
+        applicationUrl: `/dashboard/jobs?jobId=${job._id}`,
+      });
+    }
+
+    return [...grouped.values()].sort((a, b) => b.totalJobs - a.totalJobs);
+  }, [activeTab, jobsRaw, savedJobIdsSet]);
+
+  const mapSummary = useMemo(() => {
+    if (!mapPoints.length) return null;
+
+    return {
+      totalMarkers: mapPoints.length,
+      totalJobs: mapPoints.reduce((sum, point) => sum + point.totalJobs, 0),
+    };
+  }, [mapPoints]);
+
+  const isMapDataLoading = isLoading && jobsRaw.length === 0;
 
   const maxLoadedPage = useMemo(
     () => (loadedPages.length ? Math.max(...loadedPages) : 0),
@@ -503,7 +624,7 @@ export default function JobsPage() {
     });
   };
 
-  const handleViewDetails = async (jobId: string) => {
+  const handleViewDetails = useCallback(async (jobId: string) => {
     setJobDetailsModal({
       isOpen: true,
       isLoading: true,
@@ -531,7 +652,19 @@ export default function JobsPage() {
         jobId,
       });
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const url = new URL(window.location.href);
+    const deepLinkJobId = url.searchParams.get("jobId");
+    if (!deepLinkJobId) return;
+
+    void handleViewDetails(deepLinkJobId);
+    url.searchParams.delete("jobId");
+    window.history.replaceState({}, "", url.toString());
+  }, [handleViewDetails]);
 
   const getShareData = () => {
     if (!jobDetailsModal.details) return null;
@@ -696,6 +829,52 @@ export default function JobsPage() {
                 <CardHeader className="p-0 pb-4">
                   <CardTitle className="text-xl">Your Job Matches</CardTitle>
                 </CardHeader>
+                <div className="mb-4 space-y-2">
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        value={searchInput}
+                        onChange={(event) => setSearchInput(event.target.value)}
+                        placeholder="Search jobs, companies, or skills"
+                        className="pl-9"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setMapLocationInput(locationTerm);
+                        setIsMapOpen(true);
+                      }}
+                    >
+                      <MapPin className="mr-2 h-4 w-4" />
+                      Location
+                    </Button>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    {locationTerm ? (
+                      <Badge variant="outline" className="gap-1 text-xs">
+                        <MapPin className="h-3 w-3" />
+                        {locationTerm}
+                      </Badge>
+                    ) : (
+                      <span>No location filter</span>
+                    )}
+                    {jobsMetadata?.topLocations?.[0] ? (
+                      <span>
+                        Top location: {jobsMetadata.topLocations[0].name}
+                      </span>
+                    ) : null}
+                    {mapSummary ? (
+                      <span>
+                        Map points: {mapSummary.totalMarkers} • Jobs mapped:{" "}
+                        {mapSummary.totalJobs}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
                   <TabsList>
                     <TabsTrigger value="all">All</TabsTrigger>
@@ -934,6 +1113,58 @@ export default function JobsPage() {
           </div>
         </div>
       </div>
+
+      <Dialog open={isMapOpen} onOpenChange={setIsMapOpen}>
+        <DialogContent className="max-w-6xl w-[96vw]">
+          <DialogHeader>
+            <DialogTitle>Location Map</DialogTitle>
+            <DialogDescription>
+              Explore the map and apply a location filter to your job search.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input
+              value={mapLocationInput}
+              onChange={(event) => setMapLocationInput(event.target.value)}
+              placeholder="Type a city, state, or country"
+            />
+            <Button
+              type="button"
+              onClick={() => {
+                setLocationTerm(mapLocationInput.trim());
+                setIsMapOpen(false);
+              }}
+            >
+              Apply Location
+            </Button>
+            {locationTerm ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setMapLocationInput("");
+                  setLocationTerm("");
+                }}
+              >
+                Clear
+              </Button>
+            ) : null}
+          </div>
+
+          <div className="mt-2 h-[65vh] w-full overflow-hidden rounded-md">
+            <JobsLocationMap
+              points={mapPoints}
+              isLoading={isMapDataLoading}
+              onSelectLocation={(selectedLocation) => {
+                setMapLocationInput(selectedLocation);
+                setLocationTerm(selectedLocation);
+                setIsMapOpen(false);
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={jobDetailsModal.isOpen}
