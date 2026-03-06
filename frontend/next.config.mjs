@@ -6,6 +6,14 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-}
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "recharts",
+      "framer-motion",
+      "date-fns",
+    ],
+  },
+};
 
-export default nextConfig
+export default nextConfig;

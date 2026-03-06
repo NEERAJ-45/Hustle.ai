@@ -261,9 +261,21 @@ interface PaginatedApiResponse<T> extends ApiResponse<T> {
   };
 }
 
+let _tokenPromise: Promise<string | null> | null = null;
+let _tokenCacheExpiry = 0;
+
 async function getAuthToken(): Promise<string | null> {
-  const session = await getSession();
-  return (session?.user as any)?.token || null;
+  const now = Date.now();
+  if (_tokenPromise && now < _tokenCacheExpiry) return _tokenPromise;
+
+  _tokenPromise = getSession().then((s) => (s?.user as any)?.token || null);
+  _tokenCacheExpiry = now + 30_000; // cache for 30s
+  return _tokenPromise;
+}
+
+export function invalidateTokenCache() {
+  _tokenPromise = null;
+  _tokenCacheExpiry = 0;
 }
 
 async function authenticatedFetch(path: string, init?: RequestInit) {
@@ -285,7 +297,14 @@ async function authenticatedFetch(path: string, init?: RequestInit) {
   return response;
 }
 
+let _dashboardCache: { data: DashboardData; expiry: number } | null = null;
+
 export async function fetchDashboard(): Promise<DashboardData> {
+  const now = Date.now();
+  if (_dashboardCache && now < _dashboardCache.expiry) {
+    return _dashboardCache.data;
+  }
+
   const response = await authenticatedFetch("/api/v1/dashboard", {
     method: "GET",
   });
@@ -300,10 +319,22 @@ export async function fetchDashboard(): Promise<DashboardData> {
     throw new Error(result.message || "Failed to load dashboard");
   }
 
+  _dashboardCache = { data: result.data, expiry: Date.now() + 60_000 };
   return result.data;
 }
 
+export function invalidateDashboardCache() {
+  _dashboardCache = null;
+}
+
+let _currentUserCache: { data: CurrentUser; expiry: number } | null = null;
+
 export async function fetchCurrentUser(): Promise<CurrentUser> {
+  const now = Date.now();
+  if (_currentUserCache && now < _currentUserCache.expiry) {
+    return _currentUserCache.data;
+  }
+
   const response = await authenticatedFetch("/api/v1/users/me", {
     method: "GET",
   });
@@ -318,7 +349,12 @@ export async function fetchCurrentUser(): Promise<CurrentUser> {
     throw new Error(result.message || "Failed to load user profile");
   }
 
+  _currentUserCache = { data: result.data, expiry: now + 60_000 }; // 60s
   return result.data;
+}
+
+export function invalidateCurrentUserCache() {
+  _currentUserCache = null;
 }
 
 export async function updateCurrentUser(
@@ -339,6 +375,7 @@ export async function updateCurrentUser(
     throw new Error(result.message || "Failed to update user profile");
   }
 
+  _currentUserCache = { data: result.data, expiry: Date.now() + 60_000 };
   return result.data;
 }
 
@@ -352,12 +389,18 @@ export async function fetchJobs(params?: {
   return result.data;
 }
 
+const _jobDetailsCache = new Map<string, { data: JobDetailsItem; expiry: number }>();
+
 export async function fetchJobById(id: string): Promise<JobDetailsItem> {
+  const now = Date.now();
+  const cached = _jobDetailsCache.get(id);
+  if (cached && now < cached.expiry) return cached.data;
+
   const response = await fetch(`${BASE_URL}/api/v1/jobs/${id}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-    },
+    }, 
   });
 
   if (!response.ok) {
@@ -370,7 +413,13 @@ export async function fetchJobById(id: string): Promise<JobDetailsItem> {
     throw new Error(result.message || "Failed to load job details");
   }
 
+  _jobDetailsCache.set(id, { data: result.data, expiry: Date.now() + 300_000 });
   return result.data;
+}
+
+export function invalidateJobDetailsCache(id?: string) {
+  if (id) _jobDetailsCache.delete(id);
+  else _jobDetailsCache.clear();
 }
 
 export async function fetchJobsPaginated(params?: {
@@ -479,7 +528,14 @@ export async function fetchJobsMapData(params?: {
   };
 }
 
+let _resumesCache: { data: ResumeListItem[]; expiry: number } | null = null;
+
 export async function fetchResumes(): Promise<ResumeListItem[]> {
+  const now = Date.now();
+  if (_resumesCache && now < _resumesCache.expiry) {
+    return _resumesCache.data;
+  }
+
   const response = await authenticatedFetch("/api/v1/resumes", {
     method: "GET",
   });
@@ -494,5 +550,10 @@ export async function fetchResumes(): Promise<ResumeListItem[]> {
     throw new Error(result.message || "Failed to load resumes");
   }
 
+  _resumesCache = { data: result.data || [], expiry: Date.now() + 60_000 };
   return result.data || [];
+}
+
+export function invalidateResumesCache() {
+  _resumesCache = null;
 }

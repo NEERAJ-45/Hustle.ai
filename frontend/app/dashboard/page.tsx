@@ -1,25 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import JobMatchesList from "@/components/dashboard/JobMatchesList";
 import ApplicationsList from "@/components/dashboard/ApplicationsList";
-import {
-  fetchDashboard,
-  fetchCurrentUser,
-  type DashboardData,
-} from "@/lib/api-client";
+import { useDashboardApplicationsStore } from "@/store/dashboard-applications-store";
+import { useUserStore } from "@/store/user-store";
 
-import { motion } from "framer-motion";
+const MotionDiv = lazy(() =>
+  import("framer-motion").then((m) => ({ default: m.motion.div })),
+);
+
 import {
   Target,
   Send,
-  Briefcase,
+  Calendar,
   Sparkles,
   Clock,
   CheckCircle,
-  Calendar,
-  FileText,
+  Briefcase,
   AlertCircle,
   BarChart3,
   TrendingUp,
@@ -31,39 +30,24 @@ import { AnimatedNumber } from "@/components/ui/animated-number";
 
 export default function DashboardPage() {
   const [selectedTab, setSelectedTab] = useState("matches");
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
-    null,
-  );
-  const [displayName, setDisplayName] = useState("User");
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { data: session } = useSession();
 
-  useEffect(() => {
-    async function loadDashboard() {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const [data, user] = await Promise.all([
-          fetchDashboard(),
-          fetchCurrentUser(),
-        ]);
-        setDashboardData(data);
-        setDisplayName(user.name?.trim() || "User");
-      } catch (err) {
-        console.error("Failed to load dashboard:", err);
-        setError(
-          err instanceof Error ? err.message : "Failed to load dashboard",
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    }
+  // Shared stores — no duplicate fetch
+  const dashboardData = useDashboardApplicationsStore((s) => s.dashboardData);
+  const isLoading = useDashboardApplicationsStore((s) => s.isLoading);
+  const error = useDashboardApplicationsStore((s) => s.error);
+  const loadDashboard = useDashboardApplicationsStore((s) => s.loadDashboard);
+  const currentUser = useUserStore((s) => s.currentUser);
+  const loadCurrentUser = useUserStore((s) => s.loadCurrentUser);
 
+  useEffect(() => {
     if (session) {
-      loadDashboard();
+      void loadDashboard();
+      void loadCurrentUser();
     }
-  }, [session]);
+  }, [session, loadDashboard, loadCurrentUser]);
+
+  const displayName = currentUser?.name?.trim() || "User";
 
   const aiMetrics = [
     {
@@ -141,16 +125,20 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="bg-linear-to-r from-[#334e68] to-[#2563eb] text-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
-          >
-            <h1 className="text-3xl font-bold">Welcome back, {displayName}!</h1>
-            <p className="text-white/80">
-              Here is your latest job search performance from live data.
-            </p>
-          </motion.div>
+          <Suspense fallback={null}>
+            <MotionDiv
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4"
+            >
+              <h1 className="text-3xl font-bold">
+                Welcome back, {displayName}!
+              </h1>
+              <p className="text-white/80">
+                Here is your latest job search performance from live data.
+              </p>
+            </MotionDiv>
+          </Suspense>
         </div>
       </div>
 
@@ -171,12 +159,7 @@ export default function DashboardPage() {
             <p className="text-sm">{error}</p>
           </div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-          >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {[
               {
                 label: "Job Matches",
@@ -224,7 +207,7 @@ export default function DashboardPage() {
                 </div>
               </div>
             ))}
-          </motion.div>
+          </div>
         )}
 
         {/* Main Content Grid: Left = Tabs, Right = AI Assistant & Stats */}
@@ -272,124 +255,94 @@ export default function DashboardPage() {
           {/* Right Column: AI Assistant & Stats */}
           <div className="space-y-6">
             {/* AI Resume Assistant */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <Card className="bg-linear-to-br from-[#334e68] to-[#2563eb] text-white border-0">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5" />
-                    AI Resume Assistant
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-white/80">
-                    AI insights are generated from your current dashboard
-                    activity.
-                  </p>
-                  {aiMetrics.map((metric) => (
-                    <div key={metric.label} className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span>{metric.label}</span>
-                        <span className="font-semibold">
-                          <AnimatedNumber value={metric.value} suffix="%" />
-                        </span>
-                      </div>
-                      <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
-                        <motion.div
-                          className={metric.color}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${metric.value}%` }}
-                          transition={{ duration: 1, delay: 0.5 }}
-                          style={{ height: "100%" }}
-                        />
-                      </div>
+            <Card className="bg-linear-to-br from-[#334e68] to-[#2563eb] text-white border-0">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5" />
+                  AI Resume Assistant
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-white/80">
+                  AI insights are generated from your current dashboard
+                  activity.
+                </p>
+                {aiMetrics.map((metric) => (
+                  <div key={metric.label} className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span>{metric.label}</span>
+                      <span className="font-semibold">
+                        <AnimatedNumber value={metric.value} suffix="%" />
+                      </span>
                     </div>
-                  ))}
-                  <Button className="w-full bg-white text-[#334e68] hover:bg-white/90">
-                    View Full Report
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
+                    <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+                      <div
+                        className={metric.color}
+                        style={{
+                          height: "100%",
+                          width: `${metric.value}%`,
+                          transition: "width 1s ease",
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+                <Button className="w-full bg-white text-[#334e68] hover:bg-white/90">
+                  View Full Report
+                </Button>
+              </CardContent>
+            </Card>
 
             {/* Recent Activity */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6 }}
-            >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="w-5 h-5" />
-                    Recent Activity
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {recentActivities.map((activity, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.7 + index * 0.1 }}
-                      className="flex items-start gap-3"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                        <activity.icon
-                          className={`w-4 h-4 ${activity.color}`}
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-900 font-medium">
-                          {activity.action}
-                        </p>
-                        <p className="text-xs text-gray-500">{activity.time}</p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </CardContent>
-              </Card>
-            </motion.div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="w-5 h-5" />
+                  Recent Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {recentActivities.map((activity, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                      <activity.icon className={`w-4 h-4 ${activity.color}`} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-900 font-medium">
+                        {activity.action}
+                      </p>
+                      <p className="text-xs text-gray-500">{activity.time}</p>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
 
             {/* Quick Stats */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.8 }}
-            >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5" />
-                    This Week
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {weeklyStats.map((stat, index) => (
-                    <motion.div
-                      key={stat.label}
-                      initial={{ opacity: 0, x: 10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.9 + index * 0.1 }}
-                      className="flex items-center justify-between"
-                    >
-                      <span className="text-sm text-gray-600">
-                        {stat.label}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  This Week
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {weeklyStats.map((stat, index) => (
+                  <div
+                    key={stat.label}
+                    className="flex items-center justify-between"
+                  >
+                    <span className="text-sm text-gray-600">{stat.label}</span>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${stat.color}`} />
+                      <span className="text-sm font-semibold text-gray-900">
+                        <AnimatedNumber value={stat.value} />
                       </span>
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${stat.color}`} />
-                        <span className="text-sm font-semibold text-gray-900">
-                          <AnimatedNumber value={stat.value} />
-                        </span>
-                      </div>
-                    </motion.div>
-                  ))}
-                </CardContent>
-              </Card>
-            </motion.div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

@@ -1,0 +1,52 @@
+"use client";
+
+import { Line, LineChart, XAxis, YAxis, CartesianGrid } from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TrendingUp } from "lucide-react";
+import { chartConfig, chartData } from "@/components/dashboard/jobs/constants";
+
+export default function JobsSidebarChart() {
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center gap-2">
+          <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          6-Month Trend
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer config={chartConfig} className="h-50 w-full">
+          <LineChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Line
+              type="monotone"
+              dataKey="matched"
+              stroke="var(--color-matched)"
+              strokeWidth={2}
+            />
+            <Line
+              type="monotone"
+              dataKey="applied"
+              stroke="var(--color-applied)"
+              strokeWidth={2}
+            />
+            <Line
+              type="monotone"
+              dataKey="saved"
+              stroke="var(--color-saved)"
+              strokeWidth={2}
+            />
+          </LineChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  );
+}

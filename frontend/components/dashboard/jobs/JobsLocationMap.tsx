@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import { divIcon, type LatLngBoundsExpression } from "leaflet";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,121 @@ interface JobsLocationMapProps {
   onSelectLocation?: (locationFilterValue: string) => void;
 }
 
+function LocationPopupContent({
+  point,
+  onSelectLocation,
+}: {
+  point: JobsMapPoint;
+  onSelectLocation?: (locationFilterValue: string) => void;
+}) {
+  const [activeJobIndex, setActiveJobIndex] = useState(0);
+
+  const jobsCount = point.jobs.length;
+  const selectedJob = point.jobs[activeJobIndex];
+
+  if (!selectedJob) {
+    return (
+      <div className="space-y-2">
+        <p className="text-sm font-semibold flex items-center gap-1">
+          <MapPin className="h-4 w-4" />
+          {point.location.label}
+        </p>
+        <p className="text-xs text-muted-foreground">No openings loaded yet.</p>
+      </div>
+    );
+  }
+
+  const target =
+    selectedJob.applicationUrl?.startsWith("http") ||
+    selectedJob.applicationUrl?.startsWith("mailto:")
+      ? selectedJob.applicationUrl
+      : `${window.location.origin}${selectedJob.applicationUrl}`;
+
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-semibold flex items-center gap-1">
+        <MapPin className="h-4 w-4" />
+        {point.location.label}
+      </p>
+      <p className="text-xs text-muted-foreground">
+        {point.totalJobs} jobs at this location
+      </p>
+
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="h-7 text-xs"
+        onClick={() =>
+          onSelectLocation?.(
+            point.location.city ||
+              point.location.state ||
+              point.location.country ||
+              point.location.label,
+          )
+        }
+      >
+        Filter by this location
+      </Button>
+
+      <div className="rounded-md border p-2">
+        <p className="text-xs font-medium line-clamp-2">{selectedJob.title}</p>
+        <p className="text-xs text-muted-foreground line-clamp-1">
+          {selectedJob.companyName || "Unknown Company"}
+        </p>
+        <div className="mt-1 flex items-center gap-1 flex-wrap">
+          <Badge variant="outline" className="text-[10px]">
+            {selectedJob.jobType || "N/A"}
+          </Badge>
+          <Badge variant="secondary" className="text-[10px]">
+            {selectedJob.isRemote
+              ? "Remote"
+              : selectedJob.workArrangement || "On-site"}
+          </Badge>
+        </div>
+        <a
+          href={target}
+          target={target.startsWith("mailto:") ? "_self" : "_blank"}
+          rel="noopener noreferrer"
+          className="mt-1 inline-block text-xs text-blue-600 hover:underline"
+        >
+          Open Application
+        </a>
+      </div>
+
+      {jobsCount > 1 ? (
+        <div className="flex items-center justify-between gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs"
+            onClick={() => setActiveJobIndex((prev) => Math.max(0, prev - 1))}
+            disabled={activeJobIndex <= 0}
+          >
+            Previous
+          </Button>
+          <span className="text-[11px] text-muted-foreground">
+            {activeJobIndex + 1} / {jobsCount}
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs"
+            onClick={() =>
+              setActiveJobIndex((prev) => Math.min(jobsCount - 1, prev + 1))
+            }
+            disabled={activeJobIndex >= jobsCount - 1}
+          >
+            Next
+          </Button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export default function JobsLocationMap({
   points,
   isLoading = false,
@@ -32,9 +147,25 @@ export default function JobsLocationMap({
 
   const indiaPoints = useMemo(
     () =>
-      sortedPoints.filter((point) =>
-        point.location.country?.toLowerCase().includes("india"),
-      ),
+      sortedPoints.filter((point) => {
+        const country = point.location.country?.trim().toLowerCase() || "";
+        const label = point.location.label?.trim().toLowerCase() || "";
+        const state = point.location.state?.trim().toLowerCase() || "";
+        const { latitude, longitude } = point.location.coordinates;
+
+        const matchesCountry = ["india", "in", "bharat"].includes(country);
+        const matchesText =
+          label.includes("india") ||
+          state.includes("india") ||
+          state.includes("karnataka");
+        const withinIndiaBounds =
+          latitude >= 6.0 &&
+          latitude <= 37.8 &&
+          longitude >= 67.0 &&
+          longitude <= 98.0;
+
+        return matchesCountry || matchesText || withinIndiaBounds;
+      }),
     [sortedPoints],
   );
 
@@ -80,8 +211,8 @@ export default function JobsLocationMap({
         style={{ width: "100%", height: "100%" }}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
 
         {visiblePoints.map((point, index) => {
@@ -94,73 +225,10 @@ export default function JobsLocationMap({
               icon={markerIcon}
             >
               <Popup minWidth={260}>
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    {point.location.label}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {point.totalJobs} jobs at this location
-                  </p>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() =>
-                      onSelectLocation?.(
-                        point.location.city ||
-                          point.location.state ||
-                          point.location.country ||
-                          point.location.label,
-                      )
-                    }
-                  >
-                    Filter by this location
-                  </Button>
-
-                  <div className="space-y-2 max-h-48 overflow-auto pr-1">
-                    {point.jobs.slice(0, 4).map((job) => {
-                      const target =
-                        job.applicationUrl?.startsWith("http") ||
-                        job.applicationUrl?.startsWith("mailto:")
-                          ? job.applicationUrl
-                          : `${window.location.origin}${job.applicationUrl}`;
-
-                      return (
-                        <div key={job.id} className="rounded-md border p-2">
-                          <p className="text-xs font-medium line-clamp-2">
-                            {job.title}
-                          </p>
-                          <p className="text-xs text-muted-foreground line-clamp-1">
-                            {job.companyName || "Unknown Company"}
-                          </p>
-                          <div className="mt-1 flex items-center gap-1 flex-wrap">
-                            <Badge variant="outline" className="text-[10px]">
-                              {job.jobType || "N/A"}
-                            </Badge>
-                            <Badge variant="secondary" className="text-[10px]">
-                              {job.isRemote
-                                ? "Remote"
-                                : job.workArrangement || "On-site"}
-                            </Badge>
-                          </div>
-                          <a
-                            href={target}
-                            target={
-                              target.startsWith("mailto:") ? "_self" : "_blank"
-                            }
-                            rel="noopener noreferrer"
-                            className="mt-1 inline-block text-xs text-blue-600 hover:underline"
-                          >
-                            Open Application
-                          </a>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                <LocationPopupContent
+                  point={point}
+                  onSelectLocation={onSelectLocation}
+                />
               </Popup>
             </Marker>
           );

@@ -2,8 +2,6 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { motion } from "framer-motion";
-import { jobMatches } from "./dashboardData";
 
 interface JobMatch {
   id: string;
@@ -21,7 +19,7 @@ interface JobMatchesListProps {
 }
 
 export default function JobMatchesList({ data }: JobMatchesListProps) {
-  const displayData = data || jobMatches;
+  const displayData = data || [];
 
   if (displayData.length === 0) {
     return (
@@ -34,11 +32,7 @@ export default function JobMatchesList({ data }: JobMatchesListProps) {
   return (
     <div className="space-y-4">
       {displayData.map((job) => (
-        <motion.div
-          key={job.id}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        <div key={job.id}>
           <Card className="shadow-sm">
             <CardContent className="p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
               <div>
@@ -60,7 +54,7 @@ export default function JobMatchesList({ data }: JobMatchesListProps) {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       ))}
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, lazy, Suspense } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,75 +17,106 @@ import {
   BarChart3,
   CheckCircle,
 } from "lucide-react";
-import { motion } from "framer-motion";
 import { AnimatedNumber } from "@/components/ui/animated-number";
-import {
-  Bar,
-  BarChart,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-} from "recharts";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+import { useDashboardResumesStore } from "@/store/dashboard-resumes-store";
 
-const resumes = [
-  {
-    id: 1,
-    name: "Frontend Engineer Resume",
-    lastUpdated: "2 hours ago",
-    score: 95,
-    keywords: 28,
-    applications: 12,
-    successRate: 42,
-    isPrimary: true,
-  },
-  {
-    id: 2,
-    name: "Full Stack Developer Resume",
-    lastUpdated: "1 day ago",
-    score: 87,
-    keywords: 24,
-    applications: 8,
-    successRate: 38,
-    isPrimary: false,
-  },
-  {
-    id: 3,
-    name: "React Native Resume",
-    lastUpdated: "3 days ago",
-    score: 92,
-    keywords: 26,
-    applications: 3,
-    successRate: 67,
-    isPrimary: false,
-  },
-];
+const LazyResumesChart = lazy(() => import("./ResumesChart"));
 
-const scoreData = [
-  { category: "Keywords", score: 95 },
-  { category: "Formatting", score: 92 },
-  { category: "Relevance", score: 88 },
-  { category: "Length", score: 85 },
-  { category: "Impact", score: 90 },
-];
+const formatRelativeTime = (value?: string) => {
+  if (!value) return "Recently";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Recently";
+
+  const diff = Date.now() - date.getTime();
+  const minutes = Math.floor(diff / (1000 * 60));
+  if (minutes < 60) return `${Math.max(1, minutes)} min ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+
+  const days = Math.floor(hours / 24);
+  return `${days} day${days > 1 ? "s" : ""} ago`;
+};
 
 export default function ResumesPage() {
-  const [selectedResume, setSelectedResume] = useState(resumes[0]);
+  const {
+    resumes,
+    isLoading,
+    error,
+    selectedResumeId,
+    setSelectedResumeId,
+    loadResumes,
+  } = useDashboardResumesStore(
+    useShallow((state) => ({
+      resumes: state.resumes,
+      isLoading: state.isLoading,
+      error: state.error,
+      selectedResumeId: state.selectedResumeId,
+      setSelectedResumeId: state.setSelectedResumeId,
+      loadResumes: state.loadResumes,
+    })),
+  );
+
+  useEffect(() => {
+    void loadResumes();
+  }, [loadResumes]);
+
+  const selectedResume = useMemo(
+    () =>
+      resumes.find((resume) => resume._id === selectedResumeId) || resumes[0],
+    [resumes, selectedResumeId],
+  );
+
+  const totalApplications = useMemo(
+    () =>
+      resumes.reduce((sum, resume) => sum + (resume?.stats?.timesUsed || 0), 0),
+    [resumes],
+  );
+
+  const avgSuccessRate = useMemo(() => {
+    if (!resumes.length) return 0;
+    const total = resumes.reduce(
+      (sum, resume) => sum + (resume?.stats?.successRate || 0),
+      0,
+    );
+    return Math.round(total / resumes.length);
+  }, [resumes]);
+
+  const avgKeywordScore = useMemo(() => {
+    if (!resumes.length) return 0;
+    const total = resumes.reduce(
+      (sum, resume) => sum + (resume?.extractedData?.keywords?.length || 0),
+      0,
+    );
+    return Math.round((total / resumes.length) * 4);
+  }, [resumes]);
+
+  const scoreData = useMemo(
+    () => [
+      { category: "Keywords", score: Math.min(100, avgKeywordScore) },
+      { category: "Success", score: Math.min(100, avgSuccessRate) },
+      {
+        category: "Usage",
+        score: Math.min(
+          100,
+          Math.round((totalApplications / Math.max(resumes.length, 1)) * 10),
+        ),
+      },
+      { category: "Coverage", score: resumes.length > 0 ? 100 : 0 },
+      {
+        category: "Primary",
+        score: resumes.some((resume) => resume.isDefault) ? 100 : 0,
+      },
+    ],
+    [avgKeywordScore, avgSuccessRate, resumes, totalApplications],
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-linear-to-r from-[#334e68] to-[#2563eb] text-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
-          >
+          <div className="space-y-4">
             <h1 className="text-4xl font-bold mb-2">Resume Manager</h1>
             <p className="text-white/80">
               Create, optimize, and track your resumes with AI assistance
@@ -93,29 +125,34 @@ export default function ResumesPage() {
               <Plus className="w-4 h-4 mr-2" />
               Create New Resume
             </Button>
-          </motion.div>
+          </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
-        >
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: "Total Resumes", value: 3, icon: FileText },
-            { label: "Avg Score", value: 91, suffix: "%", icon: BarChart3 },
-            { label: "Applications", value: 23, icon: CheckCircle },
-            { label: "Success Rate", value: 42, suffix: "%", icon: Sparkles },
-          ].map((stat, index) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + index * 0.05 }}
-            >
+            { label: "Total Resumes", value: resumes.length, icon: FileText },
+            {
+              label: "Avg Score",
+              value: avgKeywordScore,
+              suffix: "%",
+              icon: BarChart3,
+            },
+            {
+              label: "Applications",
+              value: totalApplications,
+              icon: CheckCircle,
+            },
+            {
+              label: "Success Rate",
+              value: avgSuccessRate,
+              suffix: "%",
+              icon: Sparkles,
+            },
+          ].map((stat) => (
+            <div key={stat.label}>
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
@@ -134,22 +171,30 @@ export default function ResumesPage() {
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
+
+        {error ? (
+          <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        ) : null}
+
+        {isLoading ? (
+          <div className="mb-6 rounded-lg border p-4 text-sm text-muted-foreground">
+            Loading resumes...
+          </div>
+        ) : null}
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Resume List */}
           <div className="lg:col-span-2 space-y-4">
-            {resumes.map((resume, index) => (
-              <motion.div
-                key={resume.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + index * 0.1 }}
-                whileHover={{ y: -4 }}
-                onClick={() => setSelectedResume(resume)}
-                className={`cursor-pointer ${selectedResume.id === resume.id ? "ring-2 ring-[#2563eb]" : ""}`}
+            {resumes.map((resume) => (
+              <div
+                key={resume._id}
+                onClick={() => setSelectedResumeId(resume._id)}
+                className={`cursor-pointer hover:-translate-y-1 transition-transform ${selectedResume?._id === resume._id ? "ring-2 ring-[#2563eb]" : ""}`}
               >
                 <Card>
                   <CardContent className="p-6">
@@ -161,16 +206,19 @@ export default function ResumesPage() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="font-semibold text-gray-900">
-                              {resume.name}
+                              {resume.title}
                             </h3>
-                            {resume.isPrimary && (
+                            {resume.isDefault && (
                               <Badge className="bg-green-100 text-green-700 text-xs">
                                 Primary
                               </Badge>
                             )}
                           </div>
                           <p className="text-sm text-gray-600 mb-3">
-                            Updated {resume.lastUpdated}
+                            Updated{" "}
+                            {formatRelativeTime(
+                              resume.updatedAt || resume.createdAt,
+                            )}
                           </p>
 
                           {/* Metrics */}
@@ -181,7 +229,10 @@ export default function ResumesPage() {
                               </p>
                               <p className="text-lg font-bold text-gray-900">
                                 <AnimatedNumber
-                                  value={resume.score}
+                                  value={
+                                    (resume.extractedData?.keywords?.length ||
+                                      0) * 4
+                                  }
                                   suffix="%"
                                 />
                               </p>
@@ -191,13 +242,20 @@ export default function ResumesPage() {
                                 Keywords
                               </p>
                               <p className="text-lg font-bold text-gray-900">
-                                <AnimatedNumber value={resume.keywords} />
+                                <AnimatedNumber
+                                  value={
+                                    resume.extractedData?.keywords?.length || 0
+                                  }
+                                />
                               </p>
                             </div>
                             <div>
                               <p className="text-xs text-gray-600 mb-1">Used</p>
                               <p className="text-lg font-bold text-gray-900">
-                                <AnimatedNumber value={resume.applications} />x
+                                <AnimatedNumber
+                                  value={resume.stats?.timesUsed || 0}
+                                />
+                                x
                               </p>
                             </div>
                             <div>
@@ -206,7 +264,7 @@ export default function ResumesPage() {
                               </p>
                               <p className="text-lg font-bold text-gray-900">
                                 <AnimatedNumber
-                                  value={resume.successRate}
+                                  value={resume.stats?.successRate || 0}
                                   suffix="%"
                                 />
                               </p>
@@ -216,21 +274,25 @@ export default function ResumesPage() {
                           {/* Score Bar */}
                           <div className="mb-4">
                             <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                              <motion.div
+                              <div
                                 className={
-                                  resume.score >= 90
+                                  (resume.extractedData?.keywords?.length ||
+                                    0) *
+                                    4 >=
+                                  90
                                     ? "bg-green-500"
-                                    : resume.score >= 80
+                                    : (resume.extractedData?.keywords?.length ||
+                                          0) *
+                                          4 >=
+                                        80
                                       ? "bg-blue-500"
                                       : "bg-amber-500"
                                 }
-                                initial={{ width: 0 }}
-                                animate={{ width: `${resume.score}%` }}
-                                transition={{
-                                  duration: 1,
-                                  delay: 0.3 + index * 0.1,
+                                style={{
+                                  height: "100%",
+                                  width: `${Math.min(100, (resume.extractedData?.keywords?.length || 0) * 4)}%`,
+                                  transition: "width 1s ease",
                                 }}
-                                style={{ height: "100%" }}
                               />
                             </div>
                           </div>
@@ -262,107 +324,55 @@ export default function ResumesPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
             ))}
           </div>
 
           {/* AI Analysis Sidebar */}
           <div className="space-y-6">
-            {/* AI Score Breakdown */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
+            {/* AI Score Breakdown - lazy loaded */}
+            <Suspense
+              fallback={<Card className="h-80 animate-pulse bg-gray-100" />}
             >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5" />
-                    AI Score Analysis
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ChartContainer
-                    config={{
-                      score: {
-                        label: "Score",
-                        color: "hsl(217, 91%, 60%)",
-                      },
-                    }}
-                    className="h-62.5"
-                  >
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={scoreData} layout="vertical">
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" domain={[0, 100]} />
-                        <YAxis type="category" dataKey="category" width={80} />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar
-                          dataKey="score"
-                          fill="var(--color-score)"
-                          radius={4}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-            </motion.div>
+              <LazyResumesChart scoreData={scoreData} />
+            </Suspense>
 
             {/* AI Suggestions */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <Card className="bg-linear-to-br from-[#334e68] to-[#2563eb] text-white border-0">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5" />
-                    AI Suggestions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {[
-                    "Add 3 more technical keywords for React roles",
-                    "Quantify your achievements with metrics",
-                    "Optimize bullet points for ATS scanning",
-                  ].map((suggestion, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: 10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.6 + index * 0.1 }}
-                      className="flex items-start gap-3 bg-white/10 rounded-lg p-3"
-                    >
-                      <CheckCircle className="w-5 h-5 shrink-0 mt-0.5" />
-                      <p className="text-sm">{suggestion}</p>
-                    </motion.div>
-                  ))}
-                  <Button className="w-full bg-white text-[#334e68] hover:bg-white/90 mt-4">
-                    Apply All
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
+            <Card className="bg-linear-to-br from-[#334e68] to-[#2563eb] text-white border-0">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5" />
+                  AI Suggestions
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {[
+                  "Add 3 more technical keywords for React roles",
+                  "Quantify your achievements with metrics",
+                  "Optimize bullet points for ATS scanning",
+                ].map((suggestion, index) => (
+                  <div
+                    key={index}
+                    className="flex items-start gap-3 bg-white/10 rounded-lg p-3"
+                  >
+                    <CheckCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <p className="text-sm">{suggestion}</p>
+                  </div>
+                ))}
+                <Button className="w-full bg-white text-[#334e68] hover:bg-white/90 mt-4">
+                  Apply All
+                </Button>
+              </CardContent>
+            </Card>
 
             {/* Resume Templates */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6 }}
-            >
-              <Card>
-                <CardHeader>
-                  <CardTitle>Templates</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {[
-                    "Modern Tech",
-                    "Executive",
-                    "Creative",
-                    "ATS-Optimized",
-                  ].map((template) => (
+            <Card>
+              <CardHeader>
+                <CardTitle>Templates</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {["Modern Tech", "Executive", "Creative", "ATS-Optimized"].map(
+                  (template) => (
                     <Button
                       key={template}
                       variant="outline"
@@ -371,10 +381,10 @@ export default function ResumesPage() {
                       <FileText className="w-4 h-4 mr-2" />
                       {template}
                     </Button>
-                  ))}
-                </CardContent>
-              </Card>
-            </motion.div>
+                  ),
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

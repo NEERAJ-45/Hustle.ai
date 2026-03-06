@@ -16,7 +16,6 @@ import {
   Award,
   LineChart,
 } from "lucide-react";
-import { motion } from "framer-motion";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { useEffect, useState } from "react";
@@ -55,50 +54,30 @@ export function Hero() {
           {/* Left Column */}
           <div className="space-y-6 md:space-y-8">
             {/* Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-block"
-            >
+            <div className="inline-block">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
                 <div className="w-2 h-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full animate-pulse" />
                 <span className="text-sm font-medium text-blue-700">
                   AI-Powered Job Search
                 </span>
               </div>
-            </motion.div>
+            </div>
             {/* Headline */}
             <div className="space-y-4 md:space-y-6">
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight"
-              >
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight">
                 Find Your Dreams Jobs{" "}
                 <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent block md:inline">
                   10x Faster
                 </span>
-              </motion.h1>
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="text-lg sm:text-xl text-gray-700 leading-relaxed"
-              >
+              </h1>
+              <p className="text-lg sm:text-xl text-gray-700 leading-relaxed">
                 Hustle.ai automates your job search with intelligent matching,
                 personalized applications, and career tracking—all in one
                 platform.
-              </motion.p>
+              </p>
             </div>
             {/* Features */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4"
-            >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               {[
                 {
                   icon: CheckCircle,
@@ -128,14 +107,9 @@ export function Hero() {
                   <span className="text-gray-700">{feature.text}</span>
                 </div>
               ))}
-            </motion.div>
+            </div>
             {/* CTA Buttons - Responsive Stack */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-4 pt-4"
-            >
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Button
                 asChild
                 size="lg"
@@ -158,14 +132,9 @@ export function Hero() {
                   How It Works
                 </a>
               </Button>
-            </motion.div>
+            </div>
             {/* Stats - Responsive Grid */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 pt-6 md:pt-8"
-            >
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 pt-6 md:pt-8">
               {[
                 { icon: Target, value: 94, suffix: "%", label: "Match Rate" },
                 { icon: Users, value: 2500, suffix: "+", label: "Users" },
@@ -187,22 +156,14 @@ export function Hero() {
                   </p>
                 </div>
               ))}
-            </motion.div>
+            </div>
           </div>
           {/* Right Column - Responsive Dashboard */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="relative"
-          >
+          <div className="relative">
             {/* Dashboard Card Stack */}
             <div className="space-y-4 md:space-y-6">
               {/* Job Matches Card */}
-              <motion.div
-                whileHover={!isMobile ? { y: -8 } : {}}
-                className="relative"
-              >
+              <div className="relative hover:-translate-y-2 transition-transform duration-300">
                 <Card className="bg-white rounded-xl md:rounded-2xl border border-gray-200 shadow-lg md:shadow-xl overflow-hidden">
                   <div className="px-4 md:px-6 py-4 border-b border-gray-100">
                     <div className="flex items-center justify-between">
@@ -263,12 +224,9 @@ export function Hero() {
                     ))}
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
               {/* Performance Card */}
-              <motion.div
-                whileHover={!isMobile ? { y: -8 } : {}}
-                className="relative"
-              >
+              <div className="relative hover:-translate-y-2 transition-transform duration-300">
                 <Card className="bg-gradient-to-br from-gray-900 to-gray-800 text-white rounded-xl md:rounded-2xl border-0 shadow-lg md:shadow-xl overflow-hidden">
                   <div className="px-4 md:px-6 py-4">
                     <div className="flex items-center gap-3 mb-4">
@@ -315,12 +273,11 @@ export function Hero() {
                             </span>
                           </div>
                           <div className="h-1.5 md:h-2 bg-gray-700 rounded-full overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={
-                                isVisible ? { width: `${metric.value}%` } : {}
-                              }
-                              transition={{ duration: 1.5, delay: index * 0.2 }}
+                            <div
+                              style={{
+                                width: isVisible ? `${metric.value}%` : "0%",
+                                transition: `width 1.5s ease ${index * 0.2}s`,
+                              }}
                               className={`h-full rounded-full bg-gradient-to-r ${metric.color}`}
                             />
                           </div>
@@ -329,14 +286,9 @@ export function Hero() {
                     </div>
                   </div>
                 </Card>
-              </motion.div>
+              </div>
               {/* Success Rate Card */}
-              <motion.div
-                whileHover={!isMobile ? { scale: 1.02 } : {}}
-                animate={!isMobile ? { y: [0, -5, 0] } : {}}
-                transition={!isMobile ? { duration: 3, repeat: Infinity } : {}}
-                className="relative"
-              >
+              <div className="relative hover:scale-[1.02] transition-transform duration-300 animate-[float_3s_ease-in-out_infinite]">
                 <div className="p-6 rounded-xl md:rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg md:shadow-xl">
                   <div className="flex items-center justify-between">
                     <div>
@@ -351,20 +303,15 @@ export function Hero() {
                         Average placement success
                       </p>
                     </div>
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{
-                        duration: 20,
-                        repeat: Infinity,
-                        ease: "linear",
-                      }}
-                      className="hidden md:block"
+                    <div
+                      className="hidden md:block animate-spin"
+                      style={{ animationDuration: "20s" }}
                     >
                       <div className="w-16 h-16 border-4 border-white/30 border-t-white rounded-full" />
-                    </motion.div>
+                    </div>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             </div>
             {/* Floating Elements for Desktop */}
             {!isMobile && (
@@ -373,15 +320,10 @@ export function Hero() {
                 <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full blur-xl" />
               </>
             )}
-          </motion.div>
+          </div>
         </div>
         {/* Trust Badges - Responsive */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.8 }}
-          className="pt-8 md:pt-12 border-t border-gray-200"
-        >
+        <div className="pt-8 md:pt-12 border-t border-gray-200">
           <p className="text-center text-sm text-gray-600 mb-6 md:mb-8">
             Trusted by professionals at
           </p>
@@ -392,19 +334,16 @@ export function Hero() {
               "FutureLabs",
               "GlobalTech",
               "VisionaryAI",
-            ].map((company, index) => (
-              <motion.div
+            ].map((company) => (
+              <div
                 key={company}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.9 + index * 0.1 }}
                 className="text-sm md:text-base font-medium text-gray-800 hover:text-blue-600 transition-colors"
               >
                 {company}
-              </motion.div>
+              </div>
             ))}
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

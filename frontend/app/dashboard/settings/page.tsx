@@ -21,28 +21,21 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { User, Bell, Lock, CreditCard, Briefcase, Save } from "lucide-react";
-import { motion } from "framer-motion";
 
 export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-r from-[#334e68] to-[#2563eb] text-white">
+      <div className="bg-linear-to-r from-[#334e68] to-[#2563eb] text-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
+          <div>
             <h1 className="text-4xl font-bold mb-2">Settings</h1>
             <p className="text-white/80">Manage your account and preferences</p>
-          </motion.div>
+          </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        <div>
           <Card>
             <CardContent className="p-6">
               <Tabs defaultValue="profile">
@@ -131,14 +124,14 @@ export default function SettingsPage() {
                       />
                     </div>
 
-                    <Button className="bg-gradient-to-r from-[#334e68] to-[#2563eb]">
+                    <Button className="bg-linear-to-r from-[#334e68] to-[#2563eb]">
                       <Save className="w-4 h-4 mr-2" />
                       Save Changes
                     </Button>
                   </div>
                 </TabsContent>
 
-                {/* Job Preferences Tab */}
+                {/* Job Preferences Tab */}}
                 <TabsContent value="job" className="space-y-6">
                   <div className="space-y-4">
                     <div className="space-y-2">
@@ -213,14 +206,14 @@ export default function SettingsPage() {
                       />
                     </div>
 
-                    <Button className="bg-gradient-to-r from-[#334e68] to-[#2563eb]">
+                    <Button className="bg-linear-to-r from-[#334e68] to-[#2563eb]">
                       <Save className="w-4 h-4 mr-2" />
                       Save Preferences
                     </Button>
                   </div>
                 </TabsContent>
 
-                {/* Notifications Tab */}
+                {/* Notifications Tab */}}
                 <TabsContent value="notifications" className="space-y-6">
                   <div className="space-y-6">
                     <div>
@@ -306,14 +299,14 @@ export default function SettingsPage() {
                       </div>
                     </div>
 
-                    <Button className="bg-gradient-to-r from-[#334e68] to-[#2563eb]">
+                    <Button className="bg-linear-to-r from-[#334e68] to-[#2563eb]">
                       <Save className="w-4 h-4 mr-2" />
                       Save Preferences
                     </Button>
                   </div>
                 </TabsContent>
 
-                {/* Security Tab */}
+                {/* Security Tab */}}
                 <TabsContent value="security" className="space-y-6">
                   <div className="space-y-4">
                     <div className="space-y-2">
@@ -333,7 +326,7 @@ export default function SettingsPage() {
                       <Input id="confirmPassword" type="password" />
                     </div>
 
-                    <Button className="bg-gradient-to-r from-[#334e68] to-[#2563eb]">
+                    <Button className="bg-linear-to-r from-[#334e68] to-[#2563eb]">
                       Update Password
                     </Button>
 
@@ -365,7 +358,7 @@ export default function SettingsPage() {
                       <h3 className="text-lg font-semibold mb-4">
                         Current Plan
                       </h3>
-                      <Card className="bg-gradient-to-r from-[#334e68] to-[#2563eb] text-white border-0">
+                      <Card className="bg-linear-to-r from-[#334e68] to-[#2563eb] text-white border-0">
                         <CardHeader>
                           <CardTitle>Pro Plan</CardTitle>
                           <CardDescription className="text-white/80">
@@ -391,7 +384,7 @@ export default function SettingsPage() {
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                              <div className="w-12 h-8 bg-gradient-to-r from-[#334e68] to-[#2563eb] rounded flex items-center justify-center text-white text-xs font-bold">
+                              <div className="w-12 h-8 bg-linear-to-r from-[#334e68] to-[#2563eb] rounded flex items-center justify-center text-white text-xs font-bold">
                                 VISA
                               </div>
                               <div>
@@ -460,7 +453,7 @@ export default function SettingsPage() {
               </Tabs>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

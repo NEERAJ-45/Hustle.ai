@@ -1,6 +1,7 @@
 "use client";
 
 import type React from "react";
+import { Suspense, lazy } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -25,11 +26,17 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { signOut } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
-import { fetchCurrentUser, type CurrentUser } from "@/lib/api-client";
+import { useUserStore } from "@/store/user-store";
+
+const AnimatePresence = lazy(() =>
+  import("framer-motion").then((m) => ({ default: m.AnimatePresence })),
+);
+const MotionDiv = lazy(() =>
+  import("framer-motion").then((m) => ({ default: m.motion.div })),
+);
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
@@ -40,40 +47,11 @@ const navigation = [
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-  const router = useRouter();
-  const pathname = usePathname();
+function LoginToastHandler() {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
   const hasShownLoginToast = useRef(false);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadCurrentUser() {
-      try {
-        const user = await fetchCurrentUser();
-        if (isMounted) {
-          setCurrentUser(user);
-        }
-      } catch {
-        if (isMounted) {
-          setCurrentUser(null);
-        }
-      }
-    }
-
-    loadCurrentUser();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   useEffect(() => {
     if (
@@ -85,6 +63,23 @@ export default function DashboardLayout({
       router.replace(pathname || "/dashboard");
     }
   }, [pathname, router, searchParams]);
+
+  return null;
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
+  const currentUser = useUserStore((state) => state.currentUser);
+  const loadCurrentUser = useUserStore((state) => state.loadCurrentUser);
+
+  useEffect(() => {
+    void loadCurrentUser();
+  }, [loadCurrentUser]);
 
   const handleLogout = async () => {
     try {
@@ -203,42 +198,48 @@ export default function DashboardLayout({
         </div>
 
         {/* Mobile Menu */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="md:hidden border-t border-gray-200"
-            >
-              <div className="container mx-auto px-4 py-4 space-y-2">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start gap-2"
+        {mobileMenuOpen && (
+          <Suspense fallback={null}>
+            <AnimatePresence>
+              <MotionDiv
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="md:hidden border-t border-gray-200"
+              >
+                <div className="container mx-auto px-4 py-4 space-y-2">
+                  {navigation.map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
                     >
-                      <item.icon className="w-4 h-4" />
-                      {item.name}
-                    </Button>
-                  </Link>
-                ))}
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-2 text-red-600"
-                  onClick={handleLogout}
-                >
-                  Log out
-                </Button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start gap-2"
+                      >
+                        <item.icon className="w-4 h-4" />
+                        {item.name}
+                      </Button>
+                    </Link>
+                  ))}
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-2 text-red-600"
+                    onClick={handleLogout}
+                  >
+                    Log out
+                  </Button>
+                </div>
+              </MotionDiv>
+            </AnimatePresence>
+          </Suspense>
+        )}
       </nav>
+
+      <Suspense fallback={null}>
+        <LoginToastHandler />
+      </Suspense>
 
       {/* Main Content */}
       <main>{children}</main>

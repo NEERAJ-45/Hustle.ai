@@ -3,6 +3,35 @@ const Job = require("../models/job.model");
 const escapeRegex = (value = "") =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+const LOCATION_SYNONYMS = {
+  bengaluru: ["bengaluru", "bangalore", "bengalooru"],
+  bangalore: ["bengaluru", "bangalore", "bengalooru"],
+  bengalooru: ["bengaluru", "bangalore", "bengalooru"],
+};
+
+const getLocationVariants = (value = "") => {
+  const normalized = String(value).trim().toLowerCase();
+  if (!normalized) return [];
+
+  return LOCATION_SYNONYMS[normalized] || [normalized];
+};
+
+const buildLocationClauseFromText = (value = "") => {
+  const variants = getLocationVariants(value);
+  const regexes = variants.map(
+    (variant) => new RegExp(escapeRegex(variant), "i"),
+  );
+  if (!regexes.length) return null;
+
+  return {
+    $or: regexes.flatMap((locationRegex) => [
+      { "location.city": locationRegex },
+      { "location.state": locationRegex },
+      { "location.country": locationRegex },
+    ]),
+  };
+};
+
 const toNumberIfFinite = (value) => {
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
@@ -216,12 +245,17 @@ const getQueryOptions = (req) => {
     const safeSearch = escapeRegex(String(search).trim());
     if (safeSearch) {
       const searchRegex = new RegExp(safeSearch, "i");
+      const locationSearchClause = buildLocationClauseFromText(search);
       andClauses.push({
         $or: [
           { title: searchRegex },
           { "company.name": searchRegex },
           { description: searchRegex },
           { "requiredSkills.name": searchRegex },
+          { "location.city": searchRegex },
+          { "location.state": searchRegex },
+          { "location.country": searchRegex },
+          ...(locationSearchClause?.$or || []),
         ],
       });
     }
@@ -238,27 +272,17 @@ const getQueryOptions = (req) => {
     if (locationTokens.length > 1) {
       andClauses.push({
         $and: locationTokens.map((token) => {
-          const tokenRegex = new RegExp(escapeRegex(token), "i");
-          return {
-            $or: [
-              { "location.city": tokenRegex },
-              { "location.state": tokenRegex },
-              { "location.country": tokenRegex },
-            ],
-          };
+          return (
+            buildLocationClauseFromText(token) || {
+              $or: [],
+            }
+          );
         }),
       });
     } else {
-      const safeLocation = escapeRegex(locationText);
-      if (safeLocation) {
-        const locationRegex = new RegExp(safeLocation, "i");
-        andClauses.push({
-          $or: [
-            { "location.city": locationRegex },
-            { "location.state": locationRegex },
-            { "location.country": locationRegex },
-          ],
-        });
+      const locationClause = buildLocationClauseFromText(locationText);
+      if (locationClause) {
+        andClauses.push(locationClause);
       }
     }
   }
