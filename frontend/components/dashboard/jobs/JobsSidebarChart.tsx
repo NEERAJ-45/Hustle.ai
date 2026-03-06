@@ -8,9 +8,20 @@ import {
 } from "@/components/ui/chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp } from "lucide-react";
-import { chartConfig, chartData } from "@/components/dashboard/jobs/constants";
+import { chartConfig } from "@/components/dashboard/jobs/constants";
 
-export default function JobsSidebarChart() {
+type JobsTrendPoint = {
+  month: string;
+  matched: number;
+  applied: number;
+  interviews: number;
+};
+
+interface JobsSidebarChartProps {
+  chartData: JobsTrendPoint[];
+}
+
+export default function JobsSidebarChart({ chartData }: JobsSidebarChartProps) {
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -20,7 +31,7 @@ export default function JobsSidebarChart() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-50 w-full">
+        <ChartContainer config={chartConfig} className="h-[200px] w-full">
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
@@ -40,8 +51,8 @@ export default function JobsSidebarChart() {
             />
             <Line
               type="monotone"
-              dataKey="saved"
-              stroke="var(--color-saved)"
+              dataKey="interviews"
+              stroke="var(--color-interviews)"
               strokeWidth={2}
             />
           </LineChart>

@@ -131,7 +131,7 @@ export default function SettingsPage() {
                   </div>
                 </TabsContent>
 
-                {/* Job Preferences Tab */}}
+                
                 <TabsContent value="job" className="space-y-6">
                   <div className="space-y-4">
                     <div className="space-y-2">
@@ -213,7 +213,7 @@ export default function SettingsPage() {
                   </div>
                 </TabsContent>
 
-                {/* Notifications Tab */}}
+               
                 <TabsContent value="notifications" className="space-y-6">
                   <div className="space-y-6">
                     <div>
@@ -306,7 +306,7 @@ export default function SettingsPage() {
                   </div>
                 </TabsContent>
 
-                {/* Security Tab */}}
+                {/* Security Tab */}
                 <TabsContent value="security" className="space-y-6">
                   <div className="space-y-4">
                     <div className="space-y-2">

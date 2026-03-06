@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Bar,
-  BarChart,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-} from "recharts";
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
@@ -34,7 +27,7 @@ export default function ResumesChart({ scoreData }: ResumesChartProps) {
           AI Score Analysis
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="overflow-hidden">
         <ChartContainer
           config={{
             score: {
@@ -42,17 +35,15 @@ export default function ResumesChart({ scoreData }: ResumesChartProps) {
               color: "hsl(217, 91%, 60%)",
             },
           }}
-          className="h-62.5"
+          className="h-[250px] w-full"
         >
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={scoreData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" domain={[0, 100]} />
-              <YAxis type="category" dataKey="category" width={80} />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="score" fill="var(--color-score)" radius={4} />
-            </BarChart>
-          </ResponsiveContainer>
+          <BarChart data={scoreData} layout="vertical">
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis type="number" domain={[0, 100]} />
+            <YAxis type="category" dataKey="category" width={80} />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Bar dataKey="score" fill="var(--color-score)" radius={4} />
+          </BarChart>
         </ChartContainer>
       </CardContent>
     </Card>

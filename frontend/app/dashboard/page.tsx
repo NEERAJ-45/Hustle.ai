@@ -4,8 +4,8 @@ import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import JobMatchesList from "@/components/dashboard/JobMatchesList";
 import ApplicationsList from "@/components/dashboard/ApplicationsList";
-import { useDashboardApplicationsStore } from "@/store/dashboard-applications-store";
-import { useUserStore } from "@/store/user-store";
+import { useDashboardApplications } from "@/context/dashboard-applications-context";
+import { useUserContext } from "@/context/user-context";
 
 const MotionDiv = lazy(() =>
   import("framer-motion").then((m) => ({ default: m.motion.div })),
@@ -32,13 +32,10 @@ export default function DashboardPage() {
   const [selectedTab, setSelectedTab] = useState("matches");
   const { data: session } = useSession();
 
-  // Shared stores — no duplicate fetch
-  const dashboardData = useDashboardApplicationsStore((s) => s.dashboardData);
-  const isLoading = useDashboardApplicationsStore((s) => s.isLoading);
-  const error = useDashboardApplicationsStore((s) => s.error);
-  const loadDashboard = useDashboardApplicationsStore((s) => s.loadDashboard);
-  const currentUser = useUserStore((s) => s.currentUser);
-  const loadCurrentUser = useUserStore((s) => s.loadCurrentUser);
+  // Shared contexts — no duplicate fetch
+  const { dashboardData, isLoading, error, loadDashboard } =
+    useDashboardApplications();
+  const { currentUser, loadCurrentUser } = useUserContext();
 
   useEffect(() => {
     if (session) {
@@ -147,10 +144,15 @@ export default function DashboardPage() {
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="animate-pulse bg-gray-200 h-24 rounded-lg"
-              />
+              <div key={i} className="bg-white rounded-lg shadow-sm border p-4">
+                <div className="flex items-center gap-4 animate-pulse">
+                  <div className="w-12 h-12 rounded-full bg-gray-200 shrink-0" />
+                  <div className="space-y-2 flex-1">
+                    <div className="h-6 w-12 bg-gray-200 rounded" />
+                    <div className="h-3 w-24 bg-gray-200 rounded" />
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         ) : error ? (
@@ -228,8 +230,17 @@ export default function DashboardPage() {
                     {[1, 2, 3].map((i) => (
                       <div
                         key={i}
-                        className="animate-pulse bg-gray-200 h-24 rounded-lg"
-                      />
+                        className="bg-white rounded-lg border p-4 animate-pulse"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-lg bg-gray-200 shrink-0" />
+                          <div className="flex-1 space-y-2">
+                            <div className="h-4 w-48 bg-gray-200 rounded" />
+                            <div className="h-3 w-32 bg-gray-200 rounded" />
+                          </div>
+                          <div className="h-8 w-20 bg-gray-200 rounded-md" />
+                        </div>
+                      </div>
                     ))}
                   </div>
                 ) : (
@@ -242,8 +253,16 @@ export default function DashboardPage() {
                     {[1, 2, 3].map((i) => (
                       <div
                         key={i}
-                        className="animate-pulse bg-gray-200 h-24 rounded-lg"
-                      />
+                        className="bg-white rounded-lg border p-4 animate-pulse"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-2 flex-1">
+                            <div className="h-4 w-44 bg-gray-200 rounded" />
+                            <div className="h-3 w-28 bg-gray-200 rounded" />
+                          </div>
+                          <div className="h-6 w-20 bg-gray-200 rounded-full" />
+                        </div>
+                      </div>
                     ))}
                   </div>
                 ) : (

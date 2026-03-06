@@ -3,14 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { BarChart3 } from "lucide-react";
-import {
-  Line,
-  LineChart,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-} from "recharts";
+import { Line, LineChart, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
@@ -49,7 +42,7 @@ export default function ApplicationsChart({
             6-Month Trend
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-hidden">
           <ChartContainer
             config={{
               applications: {
@@ -61,28 +54,26 @@ export default function ApplicationsChart({
                 color: "hsl(142, 71%, 45%)",
               },
             }}
-            className="h-62.5"
+            className="h-[250px] w-full"
           >
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Line
-                  type="monotone"
-                  dataKey="applications"
-                  stroke="var(--color-applications)"
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="interviews"
-                  stroke="var(--color-interviews)"
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Line
+                type="monotone"
+                dataKey="applications"
+                stroke="var(--color-applications)"
+                strokeWidth={2}
+              />
+              <Line
+                type="monotone"
+                dataKey="interviews"
+                stroke="var(--color-interviews)"
+                strokeWidth={2}
+              />
+            </LineChart>
           </ChartContainer>
         </CardContent>
       </Card>

@@ -5,15 +5,37 @@ import { Bell, FileText, Search, TrendingUp } from "lucide-react";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { matchMetrics } from "@/components/dashboard/jobs/constants";
 
 const LazyJobsSidebarChart = lazy(() => import("./JobsSidebarChart"));
 
-export function JobsSidebar() {
+type JobsTrendPoint = {
+  month: string;
+  matched: number;
+  applied: number;
+  interviews: number;
+};
+
+type JobsMetric = {
+  label: string;
+  value: number;
+  color: string;
+};
+
+interface JobsSidebarProps {
+  chartData: JobsTrendPoint[];
+  matchMetrics: JobsMetric[];
+}
+
+export function JobsSidebar({
+  chartData = [],
+  matchMetrics = [],
+}: JobsSidebarProps) {
   return (
     <div className="space-y-6">
-      <Suspense fallback={<Card className="h-50 animate-pulse bg-gray-100" />}>
-        <LazyJobsSidebarChart />
+      <Suspense
+        fallback={<Card className="h-[200px] animate-pulse bg-gray-100" />}
+      >
+        <LazyJobsSidebarChart chartData={chartData} />
       </Suspense>
 
       <Card>

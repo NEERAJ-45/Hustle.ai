@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 
-export function useCounterAnimation(end: number, duration = 2000, start = 0, isActive = true) {
+export function useCounterAnimation(end: number, duration = 800, start = 0, isActive = true) {
   const [count, setCount] = useState(start)
 
   useEffect(() => {

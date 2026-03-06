@@ -29,7 +29,8 @@ import { useEffect, useRef, useState } from "react";
 import { signOut } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
-import { useUserStore } from "@/store/user-store";
+import { useUserContext } from "@/context/user-context";
+import { DashboardApplicationsProvider } from "@/context/dashboard-applications-context";
 
 const AnimatePresence = lazy(() =>
   import("framer-motion").then((m) => ({ default: m.AnimatePresence })),
@@ -74,8 +75,7 @@ export default function DashboardLayout({
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
-  const currentUser = useUserStore((state) => state.currentUser);
-  const loadCurrentUser = useUserStore((state) => state.loadCurrentUser);
+  const { currentUser, loadCurrentUser } = useUserContext();
 
   useEffect(() => {
     void loadCurrentUser();
@@ -242,7 +242,11 @@ export default function DashboardLayout({
       </Suspense>
 
       {/* Main Content */}
-      <main>{children}</main>
+      <main>
+        <DashboardApplicationsProvider>
+          {children}
+        </DashboardApplicationsProvider>
+      </main>
     </div>
   );
 }

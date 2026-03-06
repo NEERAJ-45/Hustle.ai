@@ -32,6 +32,8 @@ export default function JobsPage() {
     displayTotalJobs,
     currentPageJobs,
     stats,
+    chartData,
+    matchMetrics,
     error,
     isLoading,
     isLoadingMore,
@@ -88,7 +90,7 @@ export default function JobsPage() {
             />
           </div>
 
-          <JobsSidebar />
+          <JobsSidebar chartData={chartData} matchMetrics={matchMetrics} />
         </div>
       </div>
 

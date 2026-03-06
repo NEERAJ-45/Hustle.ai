@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, lazy, Suspense } from "react";
-import { useShallow } from "zustand/react/shallow";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  lazy,
+  Suspense,
+} from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +25,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { AnimatedNumber } from "@/components/ui/animated-number";
-import { useDashboardResumesStore } from "@/store/dashboard-resumes-store";
+import { fetchResumes, type ResumeListItem } from "@/lib/api-client";
 
 const LazyResumesChart = lazy(() => import("./ResumesChart"));
 
@@ -40,23 +47,28 @@ const formatRelativeTime = (value?: string) => {
 };
 
 export default function ResumesPage() {
-  const {
-    resumes,
-    isLoading,
-    error,
-    selectedResumeId,
-    setSelectedResumeId,
-    loadResumes,
-  } = useDashboardResumesStore(
-    useShallow((state) => ({
-      resumes: state.resumes,
-      isLoading: state.isLoading,
-      error: state.error,
-      selectedResumeId: state.selectedResumeId,
-      setSelectedResumeId: state.setSelectedResumeId,
-      loadResumes: state.loadResumes,
-    })),
-  );
+  const [resumes, setResumes] = useState<ResumeListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
+  const loadingRef = useRef(false);
+
+  const loadResumes = useCallback(async () => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await fetchResumes();
+      setResumes(data);
+      setSelectedResumeId(data[0]?._id || null);
+    } catch (err) {
+      loadingRef.current = false;
+      setError(err instanceof Error ? err.message : "Failed to load resumes");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     void loadResumes();
@@ -130,263 +142,317 @@ export default function ResumesPage() {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: "Total Resumes", value: resumes.length, icon: FileText },
-            {
-              label: "Avg Score",
-              value: avgKeywordScore,
-              suffix: "%",
-              icon: BarChart3,
-            },
-            {
-              label: "Applications",
-              value: totalApplications,
-              icon: CheckCircle,
-            },
-            {
-              label: "Success Rate",
-              value: avgSuccessRate,
-              suffix: "%",
-              icon: Sparkles,
-            },
-          ].map((stat) => (
-            <div key={stat.label}>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
-                      <stat.icon className="w-5 h-5 text-[#2563eb]" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-gray-900">
-                        <AnimatedNumber
-                          value={stat.value}
-                          suffix={stat.suffix}
-                        />
-                      </p>
-                      <p className="text-xs text-gray-600">{stat.label}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          ))}
-        </div>
-
         {error ? (
-          <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
             {error}
           </div>
         ) : null}
 
         {isLoading ? (
-          <div className="mb-6 rounded-lg border p-4 text-sm text-muted-foreground">
-            Loading resumes...
-          </div>
-        ) : null}
-
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Resume List */}
-          <div className="lg:col-span-2 space-y-4">
-            {resumes.map((resume) => (
-              <div
-                key={resume._id}
-                onClick={() => setSelectedResumeId(resume._id)}
-                className={`cursor-pointer hover:-translate-y-1 transition-transform ${selectedResume?._id === resume._id ? "ring-2 ring-[#2563eb]" : ""}`}
-              >
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-start gap-4 flex-1">
-                        <div className="w-12 h-12 rounded-lg bg-linear-to-br from-[#334e68] to-[#2563eb] flex items-center justify-center shrink-0">
-                          <FileText className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-gray-900">
-                              {resume.title}
-                            </h3>
-                            {resume.isDefault && (
-                              <Badge className="bg-green-100 text-green-700 text-xs">
-                                Primary
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-gray-600 mb-3">
-                            Updated{" "}
-                            {formatRelativeTime(
-                              resume.updatedAt || resume.createdAt,
-                            )}
-                          </p>
-
-                          {/* Metrics */}
-                          <div className="grid grid-cols-4 gap-4 mb-4">
-                            <div>
-                              <p className="text-xs text-gray-600 mb-1">
-                                Score
-                              </p>
-                              <p className="text-lg font-bold text-gray-900">
-                                <AnimatedNumber
-                                  value={
-                                    (resume.extractedData?.keywords?.length ||
-                                      0) * 4
-                                  }
-                                  suffix="%"
-                                />
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-600 mb-1">
-                                Keywords
-                              </p>
-                              <p className="text-lg font-bold text-gray-900">
-                                <AnimatedNumber
-                                  value={
-                                    resume.extractedData?.keywords?.length || 0
-                                  }
-                                />
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-600 mb-1">Used</p>
-                              <p className="text-lg font-bold text-gray-900">
-                                <AnimatedNumber
-                                  value={resume.stats?.timesUsed || 0}
-                                />
-                                x
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-600 mb-1">
-                                Success
-                              </p>
-                              <p className="text-lg font-bold text-gray-900">
-                                <AnimatedNumber
-                                  value={resume.stats?.successRate || 0}
-                                  suffix="%"
-                                />
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Score Bar */}
-                          <div className="mb-4">
-                            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                              <div
-                                className={
-                                  (resume.extractedData?.keywords?.length ||
-                                    0) *
-                                    4 >=
-                                  90
-                                    ? "bg-green-500"
-                                    : (resume.extractedData?.keywords?.length ||
-                                          0) *
-                                          4 >=
-                                        80
-                                      ? "bg-blue-500"
-                                      : "bg-amber-500"
-                                }
-                                style={{
-                                  height: "100%",
-                                  width: `${Math.min(100, (resume.extractedData?.keywords?.length || 0) * 4)}%`,
-                                  transition: "width 1s ease",
-                                }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline">
-                              <Eye className="w-4 h-4 mr-2" />
-                              Preview
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <Edit className="w-4 h-4 mr-2" />
-                              Edit
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <Download className="w-4 h-4 mr-2" />
-                              Download
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <Copy className="w-4 h-4 mr-2" />
-                              Duplicate
-                            </Button>
-                            <Button size="sm" variant="ghost">
-                              <Trash2 className="w-4 h-4 text-red-600" />
-                            </Button>
-                          </div>
+          <div className="space-y-8">
+            {/* Stats skeleton */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-lg shadow-sm border p-4"
+                >
+                  <div className="flex items-center gap-3 animate-pulse">
+                    <div className="w-10 h-10 rounded-lg bg-gray-200 shrink-0" />
+                    <div className="space-y-2 flex-1">
+                      <div className="h-6 w-10 bg-gray-200 rounded" />
+                      <div className="h-3 w-20 bg-gray-200 rounded" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Content skeleton */}
+            <div className="grid lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 min-w-0 space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-lg shadow-sm border p-6 animate-pulse"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-lg bg-gray-200 shrink-0" />
+                      <div className="flex-1 space-y-3">
+                        <div className="h-4 w-48 bg-gray-200 rounded" />
+                        <div className="h-3 w-32 bg-gray-200 rounded" />
+                        <div className="flex gap-2">
+                          <div className="h-5 w-16 bg-gray-200 rounded-full" />
+                          <div className="h-5 w-16 bg-gray-200 rounded-full" />
                         </div>
                       </div>
+                      <div className="h-6 w-16 bg-gray-200 rounded-full" />
                     </div>
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-4">
+                <div className="bg-white rounded-lg shadow-sm border p-4 animate-pulse">
+                  <div className="h-4 w-32 bg-gray-200 rounded mb-4" />
+                  <div className="h-48 bg-gray-200 rounded" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              {[
+                {
+                  label: "Total Resumes",
+                  value: resumes.length,
+                  icon: FileText,
+                },
+                {
+                  label: "Avg Score",
+                  value: avgKeywordScore,
+                  suffix: "%",
+                  icon: BarChart3,
+                },
+                {
+                  label: "Applications",
+                  value: totalApplications,
+                  icon: CheckCircle,
+                },
+                {
+                  label: "Success Rate",
+                  value: avgSuccessRate,
+                  suffix: "%",
+                  icon: Sparkles,
+                },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className="flex items-center gap-3 p-4 rounded-lg shadow-sm bg-white border"
+                >
+                  <div className="p-2.5 rounded-full bg-blue-100 shrink-0">
+                    <stat.icon className="w-5 h-5 text-[#2563eb]" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900">
+                      <AnimatedNumber value={stat.value} suffix={stat.suffix} />
+                    </p>
+                    <p className="text-xs text-gray-600 font-medium">
+                      {stat.label}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Resume List */}
+              <div className="lg:col-span-2 space-y-4">
+                {resumes.map((resume) => (
+                  <div
+                    key={resume._id}
+                    onClick={() => setSelectedResumeId(resume._id)}
+                    className={`cursor-pointer hover:-translate-y-1 transition-transform ${selectedResume?._id === resume._id ? "ring-2 ring-[#2563eb]" : ""}`}
+                  >
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-start gap-4 flex-1">
+                            <div className="w-12 h-12 rounded-lg bg-linear-to-br from-[#334e68] to-[#2563eb] flex items-center justify-center shrink-0">
+                              <FileText className="w-6 h-6 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold text-gray-900">
+                                  {resume.title}
+                                </h3>
+                                {resume.isDefault && (
+                                  <Badge className="bg-green-100 text-green-700 text-xs">
+                                    Primary
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-600 mb-3">
+                                Updated{" "}
+                                {formatRelativeTime(
+                                  resume.updatedAt || resume.createdAt,
+                                )}
+                              </p>
+
+                              {/* Metrics */}
+                              <div className="grid grid-cols-4 gap-4 mb-4">
+                                <div>
+                                  <p className="text-xs text-gray-600 mb-1">
+                                    Score
+                                  </p>
+                                  <p className="text-lg font-bold text-gray-900">
+                                    <AnimatedNumber
+                                      value={
+                                        (resume.extractedData?.keywords
+                                          ?.length || 0) * 4
+                                      }
+                                      suffix="%"
+                                    />
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 mb-1">
+                                    Keywords
+                                  </p>
+                                  <p className="text-lg font-bold text-gray-900">
+                                    <AnimatedNumber
+                                      value={
+                                        resume.extractedData?.keywords
+                                          ?.length || 0
+                                      }
+                                    />
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 mb-1">
+                                    Used
+                                  </p>
+                                  <p className="text-lg font-bold text-gray-900">
+                                    <AnimatedNumber
+                                      value={resume.stats?.timesUsed || 0}
+                                    />
+                                    x
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 mb-1">
+                                    Success
+                                  </p>
+                                  <p className="text-lg font-bold text-gray-900">
+                                    <AnimatedNumber
+                                      value={resume.stats?.successRate || 0}
+                                      suffix="%"
+                                    />
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Score Bar */}
+                              <div className="mb-4">
+                                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                  <div
+                                    className={
+                                      (resume.extractedData?.keywords?.length ||
+                                        0) *
+                                        4 >=
+                                      90
+                                        ? "bg-green-500"
+                                        : (resume.extractedData?.keywords
+                                              ?.length || 0) *
+                                              4 >=
+                                            80
+                                          ? "bg-blue-500"
+                                          : "bg-amber-500"
+                                    }
+                                    style={{
+                                      height: "100%",
+                                      width: `${Math.min(100, (resume.extractedData?.keywords?.length || 0) * 4)}%`,
+                                      transition: "width 1s ease",
+                                    }}
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Actions */}
+                              <div className="flex gap-2">
+                                <Button size="sm" variant="outline">
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  Preview
+                                </Button>
+                                <Button size="sm" variant="outline">
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  Edit
+                                </Button>
+                                <Button size="sm" variant="outline">
+                                  <Download className="w-4 h-4 mr-2" />
+                                  Download
+                                </Button>
+                                <Button size="sm" variant="outline">
+                                  <Copy className="w-4 h-4 mr-2" />
+                                  Duplicate
+                                </Button>
+                                <Button size="sm" variant="ghost">
+                                  <Trash2 className="w-4 h-4 text-red-600" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ))}
+              </div>
+
+              {/* AI Analysis Sidebar */}
+              <div className="min-w-0 space-y-6">
+                {/* AI Score Breakdown - lazy loaded */}
+                <Suspense
+                  fallback={<Card className="h-80 animate-pulse bg-gray-100" />}
+                >
+                  <LazyResumesChart scoreData={scoreData} />
+                </Suspense>
+
+                {/* AI Suggestions */}
+                <Card className="bg-linear-to-br from-[#334e68] to-[#2563eb] text-white border-0">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Sparkles className="w-5 h-5" />
+                      AI Suggestions
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {[
+                      "Add 3 more technical keywords for React roles",
+                      "Quantify your achievements with metrics",
+                      "Optimize bullet points for ATS scanning",
+                    ].map((suggestion, index) => (
+                      <div
+                        key={index}
+                        className="flex items-start gap-3 bg-white/10 rounded-lg p-3"
+                      >
+                        <CheckCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                        <p className="text-sm">{suggestion}</p>
+                      </div>
+                    ))}
+                    <Button className="w-full bg-white text-[#334e68] hover:bg-white/90 mt-4">
+                      Apply All
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Resume Templates */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Templates</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {[
+                      "Modern Tech",
+                      "Executive",
+                      "Creative",
+                      "ATS-Optimized",
+                    ].map((template) => (
+                      <Button
+                        key={template}
+                        variant="outline"
+                        className="w-full justify-start bg-transparent"
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        {template}
+                      </Button>
+                    ))}
                   </CardContent>
                 </Card>
               </div>
-            ))}
-          </div>
-
-          {/* AI Analysis Sidebar */}
-          <div className="space-y-6">
-            {/* AI Score Breakdown - lazy loaded */}
-            <Suspense
-              fallback={<Card className="h-80 animate-pulse bg-gray-100" />}
-            >
-              <LazyResumesChart scoreData={scoreData} />
-            </Suspense>
-
-            {/* AI Suggestions */}
-            <Card className="bg-linear-to-br from-[#334e68] to-[#2563eb] text-white border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5" />
-                  AI Suggestions
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {[
-                  "Add 3 more technical keywords for React roles",
-                  "Quantify your achievements with metrics",
-                  "Optimize bullet points for ATS scanning",
-                ].map((suggestion, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-3 bg-white/10 rounded-lg p-3"
-                  >
-                    <CheckCircle className="w-5 h-5 shrink-0 mt-0.5" />
-                    <p className="text-sm">{suggestion}</p>
-                  </div>
-                ))}
-                <Button className="w-full bg-white text-[#334e68] hover:bg-white/90 mt-4">
-                  Apply All
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Resume Templates */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Templates</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {["Modern Tech", "Executive", "Creative", "ATS-Optimized"].map(
-                  (template) => (
-                    <Button
-                      key={template}
-                      variant="outline"
-                      className="w-full justify-start bg-transparent"
-                    >
-                      <FileText className="w-4 h-4 mr-2" />
-                      {template}
-                    </Button>
-                  ),
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
