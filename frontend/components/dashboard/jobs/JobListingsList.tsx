@@ -49,7 +49,7 @@ export default function JobsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="bg-linear-to-r from-primary/10 via-primary/5 to-background border-b"></div>
+      <div className="bg-background border-b border-border"></div>
 
       <div className="container mx-auto px-4 py-6">
         <JobsStatsCards stats={stats} />

@@ -71,7 +71,7 @@ const JobCardItem = memo(function JobCardItem({
   onToggleSave: (id: string) => void;
 }) {
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="bg-card border-border">
       <CardContent className="p-5">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
@@ -104,10 +104,10 @@ const JobCardItem = memo(function JobCardItem({
           <Badge
             className={`ml-3 ${
               (job.match ?? 0) >= 90
-                ? "bg-green-100 text-green-700 border-green-200"
+                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                 : (job.match ?? 0) >= 80
-                  ? "bg-purple-100 text-purple-700 border-purple-200"
-                  : "bg-amber-100 text-amber-700 border-amber-200"
+                  ? "bg-violet-500/10 text-violet-400 border-violet-500/20"
+                  : "bg-amber-500/10 text-amber-400 border-amber-500/20"
             }`}
           >
             {typeof job.match === "number"
@@ -118,7 +118,11 @@ const JobCardItem = memo(function JobCardItem({
 
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           {job.skills.map((skill) => (
-            <Badge key={skill} variant="secondary" className="text-xs">
+            <Badge
+              key={skill}
+              variant="secondary"
+              className="text-xs bg-muted/50 text-muted-foreground border-border"
+            >
               {skill}
             </Badge>
           ))}
@@ -129,6 +133,7 @@ const JobCardItem = memo(function JobCardItem({
             variant="outline"
             size="sm"
             onClick={() => onViewDetails(job.id)}
+            className="border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
           >
             <Eye className="h-3.5 w-3.5 mr-1" />
             View Details
@@ -137,11 +142,19 @@ const JobCardItem = memo(function JobCardItem({
             variant={isSaved ? "default" : "outline"}
             size="sm"
             onClick={() => onToggleSave(job.id)}
+            className={
+              isSaved
+                ? ""
+                : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            }
           >
             <Bookmark className="h-3.5 w-3.5 mr-1" />
             {isSaved ? "Saved" : "Save"}
           </Button>
-          <Button size="sm">
+          <Button
+            size="sm"
+            className="bg-cyan-500 hover:bg-cyan-600 text-white border-0"
+          >
             <Send className="h-3.5 w-3.5 mr-1" />
             Apply
           </Button>

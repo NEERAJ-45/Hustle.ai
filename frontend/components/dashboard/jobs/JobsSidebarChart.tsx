@@ -23,10 +23,10 @@ interface JobsSidebarChartProps {
 
 export default function JobsSidebarChart({ chartData }: JobsSidebarChartProps) {
   return (
-    <Card>
+    <Card className="bg-card border-border">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base flex items-center gap-2">
-          <TrendingUp className="h-4 w-4 text-muted-foreground" />
+        <CardTitle className="text-base flex items-center gap-2 text-foreground">
+          <TrendingUp className="h-4 w-4 text-cyan-400" />
           6-Month Trend
         </CardTitle>
       </CardHeader>

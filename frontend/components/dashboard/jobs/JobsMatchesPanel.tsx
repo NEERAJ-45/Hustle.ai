@@ -74,7 +74,7 @@ export function JobsMatchesPanel({
 }: JobsMatchesPanelProps) {
   const renderTabContent = () => {
     if (error) {
-      return <div className="py-6 text-sm text-destructive">{error}</div>;
+      return <div className="py-6 text-sm text-red-400">{error}</div>;
     }
 
     if (isLoading) {
@@ -96,10 +96,12 @@ export function JobsMatchesPanel({
   };
 
   return (
-    <Card>
+    <Card className="bg-card border-border">
       <CardContent className="p-6">
         <CardHeader className="p-0 pb-4">
-          <CardTitle className="text-xl">Your Job Matches</CardTitle>
+          <CardTitle className="text-xl text-foreground">
+            Your Job Matches
+          </CardTitle>
         </CardHeader>
         <div className="mb-4 space-y-2">
           <div className="flex flex-col gap-2 sm:flex-row">
@@ -109,7 +111,7 @@ export function JobsMatchesPanel({
                 value={searchInput}
                 onChange={(event) => onSearchInputChange(event.target.value)}
                 placeholder="Search jobs, companies, or skills"
-                className="h-8 pl-8 text-sm"
+                className="h-8 pl-8 text-sm bg-muted border-border text-foreground placeholder:text-muted-foreground"
               />
             </div>
             <Button
@@ -117,6 +119,7 @@ export function JobsMatchesPanel({
               variant="outline"
               size="sm"
               onClick={onOpenLocationMap}
+              className="border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             >
               <MapPin className="mr-2 h-4 w-4" />
               Location
@@ -126,6 +129,7 @@ export function JobsMatchesPanel({
               variant="ghost"
               size="sm"
               onClick={onResetFilters}
+              className="text-muted-foreground hover:text-foreground hover:bg-accent"
             >
               Reset
             </Button>
@@ -153,11 +157,31 @@ export function JobsMatchesPanel({
         </div>
 
         <Tabs value={activeTab} onValueChange={onActiveTabChange}>
-          <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="best">Best Match</TabsTrigger>
-            <TabsTrigger value="remote">Remote</TabsTrigger>
-            <TabsTrigger value="saved">Saved</TabsTrigger>
+          <TabsList className="bg-muted border border-border">
+            <TabsTrigger
+              value="all"
+              className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground text-muted-foreground"
+            >
+              All
+            </TabsTrigger>
+            <TabsTrigger
+              value="best"
+              className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground text-muted-foreground"
+            >
+              Best Match
+            </TabsTrigger>
+            <TabsTrigger
+              value="remote"
+              className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground text-muted-foreground"
+            >
+              Remote
+            </TabsTrigger>
+            <TabsTrigger
+              value="saved"
+              className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground text-muted-foreground"
+            >
+              Saved
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="all">{renderTabContent()}</TabsContent>
           <TabsContent value="best">{renderTabContent()}</TabsContent>
@@ -172,10 +196,13 @@ export function JobsMatchesPanel({
               value={String(pageSize)}
               onValueChange={(value) => onPageSizeChange(Number(value))}
             >
-              <SelectTrigger size="sm" className="w-22">
+              <SelectTrigger
+                size="sm"
+                className="w-22 bg-muted border-border text-foreground"
+              >
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-popover border-border">
                 {PAGE_SIZE_OPTIONS.map((option) => (
                   <SelectItem key={option} value={String(option)}>
                     {option}
@@ -194,6 +221,7 @@ export function JobsMatchesPanel({
               size="sm"
               onClick={onPreviousPage}
               disabled={currentPage <= 1 || isLoading}
+              className="border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             >
               <ChevronLeft className="h-3.5 w-3.5 mr-1" />
               Previous
@@ -207,6 +235,7 @@ export function JobsMatchesPanel({
                 isLoading ||
                 (activeTab !== "saved" && isLoadingMore)
               }
+              className="border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             >
               Next
               <ChevronRight className="h-3.5 w-3.5 ml-1" />

@@ -33,14 +33,18 @@ export function JobsSidebar({
   return (
     <div className="space-y-6">
       <Suspense
-        fallback={<Card className="h-[200px] animate-pulse bg-gray-100" />}
+        fallback={
+          <Card className="h-[200px] animate-pulse bg-card border-border" />
+        }
       >
         <LazyJobsSidebarChart chartData={chartData} />
       </Suspense>
 
-      <Card>
+      <Card className="bg-card border-border">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Match Metrics</CardTitle>
+          <CardTitle className="text-base text-foreground">
+            Match Metrics
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {matchMetrics.map((metric) => (
@@ -51,7 +55,7 @@ export function JobsSidebar({
                   <AnimatedNumber value={metric.value} />%
                 </span>
               </div>
-              <div className="h-2 rounded-full bg-secondary overflow-hidden">
+              <div className="h-2 rounded-full bg-muted overflow-hidden">
                 <div
                   className={`h-full rounded-full ${metric.color}`}
                   style={{
@@ -65,20 +69,31 @@ export function JobsSidebar({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-card border-border">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Quick Actions</CardTitle>
+          <CardTitle className="text-base text-foreground">
+            Quick Actions
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <Button variant="outline" className="w-full justify-start">
+          <Button
+            variant="outline"
+            className="w-full justify-start border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          >
             <Search className="h-4 w-4 mr-2" />
             Browse All Jobs
           </Button>
-          <Button variant="outline" className="w-full justify-start">
+          <Button
+            variant="outline"
+            className="w-full justify-start border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          >
             <Bell className="h-4 w-4 mr-2" />
             Set Alerts
           </Button>
-          <Button variant="outline" className="w-full justify-start">
+          <Button
+            variant="outline"
+            className="w-full justify-start border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          >
             <FileText className="h-4 w-4 mr-2" />
             Export Saved Jobs
           </Button>

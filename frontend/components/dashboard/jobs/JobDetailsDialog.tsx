@@ -115,7 +115,7 @@ export function JobDetailsDialog({
 
   return (
     <Dialog open={state.isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl w-[96vw] min-w-[50vw] min-h-[50vh] max-h-[95vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl w-[96vw] min-w-[50vw] min-h-[50vh] max-h-[95vh] overflow-y-auto bg-card border-border text-foreground">
         <DialogHeader className="sr-only">
           <DialogTitle>Job Details</DialogTitle>
           <DialogDescription>

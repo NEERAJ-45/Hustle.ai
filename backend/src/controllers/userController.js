@@ -1,13 +1,9 @@
-const User = require("../models/user.model");
+// src/controllers/userController.js
+const userService = require("../services/userService");
 
-// GET /api/v1/users/me
 exports.getProfile = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.userId).select("-passwordHash");
-    if (!user)
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+    const user = await userService.getProfile(req.user.userId);
     res.json({
       success: true,
       message: "Profile fetched successfully",
@@ -18,20 +14,13 @@ exports.getProfile = async (req, res, next) => {
   }
 };
 
-// PUT /api/v1/users/me
 exports.updateProfile = async (req, res, next) => {
   try {
-    const updates = req.body;
-    const user = await User.findByIdAndUpdate(req.user.userId, updates, {
-      new: true,
-      runValidators: true,
-    }).select("-passwordHash");
-    if (!user)
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    const logger = require("../utils/logger");
-    logger.log(`[Profile Update] User ${user.email} updated profile`);
+    const user = await userService.updateProfile(
+      req.user.userId,
+      req.body,
+      req.user.email,
+    );
     res.json({
       success: true,
       message: "Profile updated successfully",
@@ -42,14 +31,9 @@ exports.updateProfile = async (req, res, next) => {
   }
 };
 
-// GET /api/v1/users/:id (admin)
 exports.getUserById = async (req, res, next) => {
   try {
-    const user = await User.findById(req.params.id).select("-passwordHash");
-    if (!user)
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+    const user = await userService.getUserById(req.params.id);
     res.json({
       success: true,
       message: "User details fetched successfully",
@@ -60,17 +44,9 @@ exports.getUserById = async (req, res, next) => {
   }
 };
 
-// DELETE /api/v1/users/:id (admin)
 exports.deleteUser = async (req, res, next) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user)
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    logger.log(
-      `[User Deleted] Admin ${req.user.email} deleted user ${user.email}`,
-    );
+    await userService.deleteUser(req.params.id, req.user.email);
     res.json({ success: true, message: "User deleted successfully" });
   } catch (err) {
     next(err);

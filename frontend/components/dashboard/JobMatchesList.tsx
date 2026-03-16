@@ -23,7 +23,7 @@ export default function JobMatchesList({ data }: JobMatchesListProps) {
 
   if (displayData.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-muted-foreground">
         <p>No job matches available yet. Check back soon!</p>
       </div>
     );
@@ -33,20 +33,22 @@ export default function JobMatchesList({ data }: JobMatchesListProps) {
     <div className="space-y-4">
       {displayData.map((job) => (
         <div key={job.id}>
-          <Card className="shadow-sm">
+          <Card className="bg-card border-border">
             <CardContent className="p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
               <div>
-                <h3 className="font-semibold text-lg">{job.title}</h3>
-                <p className="text-sm text-gray-600">
+                <h3 className="font-semibold text-lg text-foreground">
+                  {job.title}
+                </h3>
+                <p className="text-sm text-muted-foreground">
                   {job.company} • {job.location}
                 </p>
-                <p className="text-xs text-gray-500">{job.salary}</p>
+                <p className="text-xs text-muted-foreground">{job.salary}</p>
               </div>
               <div className="flex flex-col items-end">
-                <span className="text-blue-600 font-bold">
+                <span className="text-cyan-400 font-bold">
                   {job.match}% Match
                 </span>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-muted-foreground">
                   {typeof job.posted === "string"
                     ? new Date(job.posted).toLocaleDateString()
                     : job.posted}

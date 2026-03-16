@@ -15,59 +15,57 @@ export function JobsStatsCards({ stats }: JobsStatsCardsProps) {
       label: "Total Jobs",
       value: stats.total,
       icon: Briefcase,
-      color: "text-blue-600",
-      bgColor: "bg-blue-100",
+      color: "text-cyan-400",
+      bgColor: "bg-cyan-500/10",
     },
     {
       label: "New Today",
       value: stats.newToday,
       icon: Sparkles,
-      color: "text-amber-600",
-      bgColor: "bg-amber-100",
+      color: "text-amber-400",
+      bgColor: "bg-amber-500/10",
     },
     {
       label: "Matched",
       value: stats.matched,
       icon: Target,
-      color: "text-purple-600",
-      bgColor: "bg-purple-100",
+      color: "text-violet-400",
+      bgColor: "bg-violet-500/10",
     },
     {
       label: "Saved",
       value: stats.saved,
       icon: Bookmark,
-      color: "text-green-600",
-      bgColor: "bg-green-100",
+      color: "text-emerald-400",
+      bgColor: "bg-emerald-500/10",
     },
     {
       label: "Applied",
       value: stats.applied,
       icon: Send,
-      color: "text-red-600",
-      bgColor: "bg-red-100",
+      color: "text-red-400",
+      bgColor: "bg-red-500/10",
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-      {statsItems.map((stat) => (
-        <div key={stat.label}>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
-                </div>
-                <div>
-                  <AnimatedNumber
-                    value={stat.value}
-                    className="text-2xl font-bold text-foreground"
-                  />
-                  <p className="text-xs text-muted-foreground">{stat.label}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {statsItems.slice(0, 4).map((stat) => (
+        <div
+          key={stat.label}
+          className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border"
+        >
+          <div className={`p-2.5 rounded-full ${stat.bgColor} shrink-0`}>
+            <stat.icon className={`w-5 h-5 ${stat.color}`} />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-foreground">
+              <AnimatedNumber value={stat.value} />
+            </p>
+            <p className="text-xs text-muted-foreground font-medium">
+              {stat.label}
+            </p>
+          </div>
         </div>
       ))}
     </div>

@@ -31,6 +31,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { useUserContext } from "@/context/user-context";
 import { DashboardApplicationsProvider } from "@/context/dashboard-applications-context";
+import { ThemeToggleButton } from "@/components/ui/skiper26-theme-toggle";
 
 const AnimatePresence = lazy(() =>
   import("framer-motion").then((m) => ({ default: m.AnimatePresence })),
@@ -75,6 +76,7 @@ export default function DashboardLayout({
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const { currentUser, loadCurrentUser } = useUserContext();
 
   useEffect(() => {
@@ -109,53 +111,79 @@ export default function DashboardLayout({
       .join("") || "U";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Top Navigation */}
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <nav className="bg-background/80 backdrop-blur-xl border-b border-border sticky top-0 z-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-linear-to-r from-[#334e68] to-[#2563eb] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-500 to-purple-500 flex items-center justify-center">
                 <span className="text-white font-bold text-sm">H</span>
               </div>
-              <span className="text-xl font-bold bg-linear-to-r from-[#334e68] to-[#2563eb] bg-clip-text text-transparent">
+              <span className="text-xl font-bold text-foreground">
                 Hustle.ai
               </span>
             </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-1">
-              {navigation.map((item) => (
-                <Link key={item.name} href={item.href}>
-                  <Button variant="ghost" className="gap-2">
-                    <item.icon className="w-4 h-4" />
-                    {item.name}
-                  </Button>
-                </Link>
-              ))}
+              {navigation.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link key={item.name} href={item.href}>
+                    <Button
+                      variant="ghost"
+                      className={`gap-2 text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-200 ${isActive ? "text-foreground bg-accent border-b-2 border-cyan-500 rounded-b-none" : ""}`}
+                    >
+                      <item.icon className="w-4 h-4" />
+                      {item.name}
+                    </Button>
+                  </Link>
+                );
+              })}
             </div>
 
             {/* Right Side */}
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" className="relative">
+              <ThemeToggleButton
+                variant="circle"
+                start="center"
+                className="size-8"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative text-muted-foreground hover:text-foreground hover:bg-accent"
+              >
                 <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-cyan-500 rounded-full" />
               </Button>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="gap-2">
-                    <Avatar className="w-8 h-8">
-                      <AvatarFallback>{avatarFallback}</AvatarFallback>
+                  <Button
+                    variant="ghost"
+                    className="gap-2 text-muted-foreground hover:text-foreground hover:bg-accent"
+                  >
+                    <Avatar className="w-8 h-8 border border-border">
+                      <AvatarFallback className="bg-linear-to-br from-blue-500 to-purple-500 text-white text-xs">
+                        {avatarFallback}
+                      </AvatarFallback>
                     </Avatar>
                     <span className="hidden sm:inline">{displayName}</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
+                <DropdownMenuContent
+                  align="end"
+                  className="w-56 bg-popover border-border text-popover-foreground"
+                >
+                  <DropdownMenuLabel className="text-muted-foreground">
+                    My Account
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-border" />
                   <DropdownMenuItem
+                    className="hover:bg-accent focus:bg-accent text-foreground"
                     onClick={() =>
                       router.push("/dashboard/settings?tab=profile")
                     }
@@ -163,19 +191,24 @@ export default function DashboardLayout({
                     Profile
                   </DropdownMenuItem>
                   <DropdownMenuItem
+                    className="hover:bg-accent focus:bg-accent text-foreground"
                     onClick={() => router.push("/dashboard/settings?tab=job")}
                   >
                     Job Preferences
                   </DropdownMenuItem>
                   <DropdownMenuItem
+                    className="hover:bg-accent focus:bg-accent text-foreground"
                     onClick={() =>
                       router.push("/dashboard/settings?tab=billing")
                     }
                   >
                     Billing
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
+                  <DropdownMenuSeparator className="bg-border" />
+                  <DropdownMenuItem
+                    className="hover:bg-accent focus:bg-accent text-red-400"
+                    onClick={handleLogout}
+                  >
                     Log out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -184,7 +217,7 @@ export default function DashboardLayout({
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden"
+                className="md:hidden text-muted-foreground hover:text-foreground hover:bg-accent"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 {mobileMenuOpen ? (
@@ -205,27 +238,30 @@ export default function DashboardLayout({
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="md:hidden border-t border-gray-200"
+                className="md:hidden border-t border-border"
               >
                 <div className="container mx-auto px-4 py-4 space-y-2">
-                  {navigation.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start gap-2"
+                  {navigation.map((item) => {
+                    const isActive = pathname === item.href;
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
                       >
-                        <item.icon className="w-4 h-4" />
-                        {item.name}
-                      </Button>
-                    </Link>
-                  ))}
+                        <Button
+                          variant="ghost"
+                          className={`w-full justify-start gap-2 text-muted-foreground hover:text-foreground hover:bg-accent ${isActive ? "text-foreground bg-accent" : ""}`}
+                        >
+                          <item.icon className="w-4 h-4" />
+                          {item.name}
+                        </Button>
+                      </Link>
+                    );
+                  })}
                   <Button
                     variant="ghost"
-                    className="w-full justify-start gap-2 text-red-600"
+                    className="w-full justify-start gap-2 text-red-400 hover:text-red-300 hover:bg-accent"
                     onClick={handleLogout}
                   >
                     Log out

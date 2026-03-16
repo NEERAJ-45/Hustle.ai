@@ -1,14 +1,24 @@
 const express = require("express");
 const router = express.Router();
 const jobController = require("../controllers/jobController");
+const { autoApply } = require("../controllers/autoApplyController");
 const { validateBody, validateParam } = require("../middlewares/validation");
 const requireAuth = require("../middlewares/authMiddleware");
 const { requireAdminOrRecruiter } = require("../middlewares/roleMiddleware");
+const { autoApplyJobSchema } = require("../validations/autoApplyValidator");
 const {
   createJobSchema,
   updateJobSchema,
   idParamSchema,
 } = require("../validations/jobValidator");
+
+// @ POST /api/v1/jobs/auto-apply — Auto-apply to a job (stub queue)
+router.post(
+  "/auto-apply",
+  requireAuth,
+  validateBody(autoApplyJobSchema),
+  autoApply,
+);
 
 // @ GET /api/v1/jobs — Get job list (search, filters, pagination, open to all)
 router.get("/", jobController.listJobs);

@@ -9,29 +9,33 @@ const stats = [
     label: "Job Matches",
     value: 47,
     icon: Target,
-    color: "text-[#2563eb]",
-    bgColor: "bg-blue-100",
+    color: "text-cyan-400",
+    bgColor: "bg-cyan-500/10",
+    borderColor: "border-cyan-500/20",
   },
   {
     label: "Applications Sent",
     value: 23,
     icon: Briefcase,
-    color: "text-[#334e68]",
-    bgColor: "bg-blue-50",
+    color: "text-emerald-400",
+    bgColor: "bg-emerald-500/10",
+    borderColor: "border-emerald-500/20",
   },
   {
     label: "Interviews",
     value: 5,
     icon: FileText,
-    color: "text-[#2563eb]",
-    bgColor: "bg-blue-100",
+    color: "text-violet-400",
+    bgColor: "bg-violet-500/10",
+    borderColor: "border-violet-500/20",
   },
   {
     label: "Offers",
     value: 2,
     icon: TrendingUp,
-    color: "text-[#334e68]",
-    bgColor: "bg-blue-50",
+    color: "text-amber-400",
+    bgColor: "bg-amber-500/10",
+    borderColor: "border-amber-500/20",
   },
 ];
 
@@ -41,16 +45,16 @@ export default function DashboardStats() {
       {stats.map((stat) => (
         <div
           key={stat.label}
-          className={`flex items-center gap-4 p-6 rounded-xl shadow bg-white ${stat.bgColor}`}
+          className={`flex items-center gap-4 p-6 rounded-xl bg-card border ${stat.borderColor}`}
         >
-          <div className={`p-3 rounded-full ${stat.bgColor} ${stat.color}`}>
-            <stat.icon className="w-6 h-6" />
+          <div className={`p-3 rounded-full ${stat.bgColor}`}>
+            <stat.icon className={`w-6 h-6 ${stat.color}`} />
           </div>
           <div>
-            <p className="text-2xl font-bold">
+            <p className="text-2xl font-bold text-foreground">
               <AnimatedNumber value={stat.value} />
             </p>
-            <p className="text-sm text-gray-600">{stat.label}</p>
+            <p className="text-sm text-muted-foreground">{stat.label}</p>
           </div>
         </div>
       ))}

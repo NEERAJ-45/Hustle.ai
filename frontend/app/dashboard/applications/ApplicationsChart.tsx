@@ -35,10 +35,10 @@ export default function ApplicationsChart({
 }: ApplicationsChartProps) {
   return (
     <>
-      <Card>
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5" />
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <BarChart3 className="w-5 h-5 text-cyan-400" />
             6-Month Trend
           </CardTitle>
         </CardHeader>
@@ -78,20 +78,20 @@ export default function ApplicationsChart({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle>Success Metrics</CardTitle>
+          <CardTitle className="text-foreground">Success Metrics</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {successMetrics.map((metric) => (
             <div key={metric.label} className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-700">{metric.label}</span>
-                <span className="font-semibold text-gray-900">
+                <span className="text-muted-foreground">{metric.label}</span>
+                <span className="font-semibold text-foreground">
                   <AnimatedNumber value={metric.value} suffix="%" />
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+              <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
                 <div
                   className={metric.color}
                   style={{

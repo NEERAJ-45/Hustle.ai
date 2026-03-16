@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev":"nodemon src/index.js",
-    "seed:dashboard":"node src/utils/seedDashboardDummyData.js"
+    "test": "jest --forceExit --detectOpenHandles",
+    "test:watch": "jest --watch --forceExit --detectOpenHandles",
+    "test:coverage": "jest --coverage --forceExit --detectOpenHandles",
+    "dev": "nodemon src/index.js",
+    "seed:dashboard": "node src/utils/seedDashboardDummyData.js",
+    "validate": "node -e \"require('./src/services/authService'); require('./src/services/jobService'); console.log('OK')\""
   },
   "keywords": [],
   "author": "",
@@ -31,6 +34,10 @@
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "@types/jest": "^30.0.0",
+    "jest": "^30.3.0",
+    "mongodb-memory-server": "^11.0.1",
+    "nodemon": "^3.1.10",
+    "supertest": "^7.2.2"
   }
 }

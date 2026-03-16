@@ -20,10 +20,10 @@ interface ResumesChartProps {
 
 export default function ResumesChart({ scoreData }: ResumesChartProps) {
   return (
-    <Card>
+    <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5" />
+        <CardTitle className="flex items-center gap-2 text-foreground">
+          <Sparkles className="w-5 h-5 text-cyan-400" />
           AI Score Analysis
         </CardTitle>
       </CardHeader>
