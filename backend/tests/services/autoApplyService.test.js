@@ -1,61 +1,79 @@
 // tests/services/autoApplyService.test.js
+// Unit tests for the auto-apply service — verifies it delegates to queueService.
+
 jest.mock("../../src/utils/logger", () => ({ log: jest.fn() }));
+
+jest.mock("../../src/services/queueService", () => ({
+  addJob: jest.fn().mockResolvedValue({ id: "bull-job-42" }),
+}));
 
 const {
   enqueueAutoApplyJob,
-  autoApplyQueue,
 } = require("../../src/services/autoApplyService");
+const queueService = require("../../src/services/queueService");
+const logger = require("../../src/utils/logger");
 
 describe("autoApplyService", () => {
   beforeEach(() => {
-    // Clear queue between tests
-    autoApplyQueue.jobs = [];
+    jest.clearAllMocks();
   });
 
   describe("enqueueAutoApplyJob", () => {
-    it("should enqueue a job and return true", () => {
-      const result = enqueueAutoApplyJob("user1", {
-        candidateId: "user1",
-        jobId: "job1",
-        resumeUrl: "https://example.com/resume.pdf",
-      });
+    const userId = "user-123";
+    const jobData = {
+      candidateId: "cand-456",
+      jobId: "job-789",
+      resumeUrl: "https://example.com/resume.pdf",
+    };
 
-      expect(result).toBe(true);
-      expect(autoApplyQueue.getJobs()).toHaveLength(1);
+    it("should call queueService.addJob with enriched data", async () => {
+      await enqueueAutoApplyJob(userId, jobData);
+
+      expect(queueService.addJob).toHaveBeenCalledTimes(1);
+      expect(queueService.addJob).toHaveBeenCalledWith(
+        "apply-job",
+        expect.objectContaining({
+          candidateId: "cand-456",
+          jobId: "job-789",
+          resumeUrl: "https://example.com/resume.pdf",
+          userId: "user-123",
+          enqueuedAt: expect.any(String),
+        }),
+      );
     });
 
-    it("should add enqueuedAt timestamp and userId", () => {
-      enqueueAutoApplyJob("u1", { candidateId: "u1", jobId: "j1" });
-      const job = autoApplyQueue.getJobs()[0];
-      expect(job).toHaveProperty("enqueuedAt");
-      expect(job.enqueuedAt).toBeInstanceOf(Date);
-      expect(job.userId).toBe("u1");
+    it("should return an object with jobId and enqueuedAt", async () => {
+      const result = await enqueueAutoApplyJob(userId, jobData);
+
+      expect(result).toHaveProperty("jobId", "bull-job-42");
+      expect(result).toHaveProperty("enqueuedAt");
+      expect(typeof result.enqueuedAt).toBe("string");
     });
 
-    it("should enqueue multiple jobs", () => {
-      enqueueAutoApplyJob("u1", { candidateId: "u1", jobId: "j1" });
-      enqueueAutoApplyJob("u1", { candidateId: "u1", jobId: "j2" });
-      enqueueAutoApplyJob("u2", { candidateId: "u2", jobId: "j3" });
+    it("should log the enqueue event", async () => {
+      await enqueueAutoApplyJob(userId, jobData);
 
-      expect(autoApplyQueue.getJobs()).toHaveLength(3);
-    });
-  });
-
-  describe("AutoApplyQueueStub", () => {
-    it("should return empty array initially", () => {
-      expect(autoApplyQueue.getJobs()).toEqual([]);
+      expect(logger.log).toHaveBeenCalledWith(
+        expect.stringContaining("[AutoApply Enqueued]"),
+      );
+      expect(logger.log).toHaveBeenCalledWith(
+        expect.stringContaining("user-123"),
+      );
     });
 
-    it("should preserve job data", () => {
-      const data = {
-        candidateId: "u1",
-        jobId: "j1",
-        coverLetter: "Hi",
-      };
-      autoApplyQueue.enqueue(data);
-      const job = autoApplyQueue.getJobs()[0];
-      expect(job.candidateId).toBe("u1");
-      expect(job.coverLetter).toBe("Hi");
+    it("should set enqueuedAt as a valid ISO date string", async () => {
+      const result = await enqueueAutoApplyJob(userId, jobData);
+      const parsed = new Date(result.enqueuedAt);
+
+      expect(parsed.toString()).not.toBe("Invalid Date");
+    });
+
+    it("should propagate queueService errors", async () => {
+      queueService.addJob.mockRejectedValueOnce(new Error("Redis down"));
+
+      await expect(
+        enqueueAutoApplyJob(userId, jobData),
+      ).rejects.toThrow("Redis down");
     });
   });
 });

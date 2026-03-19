@@ -48,4 +48,8 @@ class PerMinuteLogger {
   }
 }
 
-module.exports = new PerMinuteLogger();
+const defaultLogger = new PerMinuteLogger();
+const queueLogger = new PerMinuteLogger(path.join(process.cwd(), "logs", "queue_logs"));
+
+module.exports = defaultLogger;
+module.exports.queueLogger = queueLogger;

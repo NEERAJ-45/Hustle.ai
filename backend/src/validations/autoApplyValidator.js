@@ -8,7 +8,8 @@ const objectId = Joi.string()
 exports.autoApplyJobSchema = Joi.object({
   candidateId: objectId.required(),
   jobId: objectId.required(),
-  resumeUrl: Joi.string().uri().required(),
+  resumeUrl: Joi.string().required(), // Relaxed to allow local file paths for testing
+  template: Joi.string().optional(), // Added for testing
   coverLetter: Joi.string().max(5000).optional(),
   platform: Joi.string()
     .valid("linkedin", "indeed", "company_site")

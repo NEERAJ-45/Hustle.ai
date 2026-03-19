@@ -1,0 +1,25 @@
+# To use this file, install the "REST Client" extension in VS Code.
+
+# Environment Variables
+@baseUrl = http://localhost:5000/api/v1
+@candidateId = 507f1f77bcf86cd799439011
+@jobId = 507f1f77bcf86cd799439012
+@resumeUrl = file:///e:/Study/Main-Content/Major%20Projects/Hustle.ai/backend/Resume.pdf
+@template = software-engineer-v1
+
+# First, log in as a candidate to get a token and replace the value below
+# Or just generate one using the script logic we used before.
+# We'll just define a placeholder here for the token.
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUwN2YxZjc3YmNmODZjZDc5OTQzOTAxMSIsInJvbGUiOiJjYW5kaWRhdGUiLCJpYXQiOjE3NzM3NjQ2MTUsImV4cCI6MTc3Mzg1MTAxNX0.hJV3CCXTnfKRut9Tv6aWV6wESrstxpHcwSRoRw2caqw
+
+### Test Auto-Apply Endpoint
+POST {{baseUrl}}/jobs/auto-apply
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "candidateId": "{{candidateId}}",
+  "jobId": "{{jobId}}",
+  "resumeUrl": "{{resumeUrl}}",
+  "template": "{{template}}"
+}

@@ -11,6 +11,7 @@ const resumeRoutes = require("./routes/resumeRoutes");
 const coverLetterRoutes = require("./routes/coverLetterRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const errorHandler = require("./middlewares/errorHandler");
+const queueService = require("./services/queueService");
 
 const app = express();
 
@@ -46,6 +47,10 @@ app.use("/api/v1/resumes", resumeRoutes);
 app.use("/api/v1/coverletters", coverLetterRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
 
+// --- BullMQ Dashboard ---
+const bullBoardRouter = require("./utils/bullBoard");
+app.use("/admin/queues", bullBoardRouter);
+
 // --- Health Check ---
 app.get("/health", (req, res) => {
   res.status(200).json({
@@ -69,8 +74,21 @@ app.use(errorHandler);
 
 // --- Start Server ---
 const PORT = process.env.PORT;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// --- Graceful Shutdown ---
+const gracefulShutdown = async (signal) => {
+  console.log(`\n${signal} received. Shutting down gracefully…`);
+  await queueService.close();
+  server.close(() => {
+    console.log("HTTP server closed.");
+    process.exit(0);
+  });
+};
+
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 
 module.exports = app;

@@ -1,33 +1,31 @@
 // src/services/autoApplyService.js
-// Stub service for auto-apply job queue
+// Enqueues auto-apply jobs into the BullMQ "auto-apply" queue via queueService.
 const logger = require("../utils/logger");
+const queueService = require("./queueService");
 
-class AutoApplyQueueStub {
-  constructor() {
-    this.jobs = [];
-  }
-  enqueue(jobData) {
-    // In production, push to a real queue (e.g., Bull, RabbitMQ)
-    this.jobs.push({ ...jobData, enqueuedAt: new Date() });
-    return true;
-  }
-  getJobs() {
-    return this.jobs;
-  }
-}
+/**
+ * Validate and enqueue an auto-apply job.
+ *
+ * @param {string} userId   – Authenticated user's ID (from JWT)
+ * @param {object} jobData  – Validated request body (candidateId, jobId, resumeUrl, etc.)
+ * @returns {Promise<{jobId: string, enqueuedAt: string}>}
+ */
+const enqueueAutoApplyJob = async (userId, jobData) => {
+  const enriched = {
+    ...jobData,
+    userId,
+    enqueuedAt: new Date().toISOString(),
+  };
 
-const autoApplyQueue = new AutoApplyQueueStub();
+  const job = await queueService.addJob("apply-job", enriched);
 
-const enqueueAutoApplyJob = (userId, jobData) => {
-  const enriched = { ...jobData, userId };
-  const result = autoApplyQueue.enqueue(enriched);
   logger.log(
-    `[AutoApply Enqueued] userId=${userId} candidateId=${jobData.candidateId} jobId=${jobData.jobId}`,
+    `[AutoApply Enqueued] userId=${userId} candidateId=${jobData.candidateId} jobId=${jobData.jobId} queueJobId=${job.id}`,
   );
-  return result;
+
+  return { jobId: job.id, enqueuedAt: enriched.enqueuedAt };
 };
 
 module.exports = {
   enqueueAutoApplyJob,
-  autoApplyQueue, // for testing/inspection
 };
