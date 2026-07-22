@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from bson.objectid import ObjectId
+from bson import ObjectId
+from bson.errors import InvalidId
 from app.database import get_collection
 from app.ml.matcher import rank_jobs_for_candidate
 from app.utils.logger import get_logger
@@ -11,11 +12,16 @@ logger = get_logger(__name__)
 def match_candidate_jobs(user_id: str):
     """Fetch user, compute matches, and return recommendations."""
 
+    try:
+        obj_id = ObjectId(user_id)
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid user ID format")
+
     users = get_collection("users")
     jobs = get_collection("jobs")
 
     # Validate user
-    candidate = users.find_one({"_id": ObjectId(user_id)})
+    candidate = users.find_one({"_id": obj_id})
     if not candidate:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -26,6 +32,6 @@ def match_candidate_jobs(user_id: str):
 
     results = rank_jobs_for_candidate(candidate, active_jobs, top_n=5)
     if not results:
-        raise HTTPException(status_code=204, detail="No matching jobs found")
+        return {"userId": user_id, "matches": [], "message": "No matching jobs found"}
 
     return {"userId": user_id, "matches": results}

@@ -10,6 +10,10 @@ exports.updateCoverLetterSchema = Joi.object({
   aiGeneration: Joi.object().optional(),
   template: Joi.object().optional()
 });
+exports.generateCoverLetterSchema = Joi.object({
+  jobId: Joi.string().hex().length(24).required()
+});
+
 exports.idParamSchema = Joi.object({
   id: Joi.string().hex().length(24).required()
 });

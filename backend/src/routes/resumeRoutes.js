@@ -5,7 +5,11 @@ const requireAuth = require("../middlewares/authMiddleware");
 const requireOwner = require("../middlewares/ownerMiddleware");
 const { validateBody, validateParam } = require("../middlewares/validation");
 const { createResumeSchema, updateResumeSchema, idParamSchema } = require("../validations/resumeValidator");
+const { tailorResumeSchema } = require("../validations/resumeValidator");
 const upload = require("../utils/upload");
+
+// Tailor resume for a specific job
+router.post("/tailor", requireAuth, validateBody(tailorResumeSchema), resumeController.tailorResume);
 
 // List all resumes for authenticated user
 router.get("/", requireAuth, resumeController.listResumes); 

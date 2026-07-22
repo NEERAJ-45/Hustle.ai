@@ -4,7 +4,10 @@ const coverLetterController = require("../controllers/coverLetterController");
 const requireAuth = require("../middlewares/authMiddleware");
 const requireOwner = require("../middlewares/ownerMiddleware");
 const { validateBody, validateParam } = require("../middlewares/validation");
-const { createCoverLetterSchema, updateCoverLetterSchema, idParamSchema } = require("../validations/coverLetterValidator");
+const { createCoverLetterSchema, updateCoverLetterSchema, generateCoverLetterSchema, idParamSchema } = require("../validations/coverLetterValidator");
+
+// Generate AI cover letter for a specific job
+router.post("/generate", requireAuth, validateBody(generateCoverLetterSchema), coverLetterController.generateCoverLetter);
 
 // List all cover letters for authenticated user
 router.get("/", requireAuth, coverLetterController.listCoverLetters);

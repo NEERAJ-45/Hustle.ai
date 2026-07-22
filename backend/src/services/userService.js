@@ -3,7 +3,7 @@ const User = require("../models/user.model");
 const logger = require("../utils/logger");
 
 const getProfile = async (userId) => {
-  const user = await User.findById(userId).select("-passwordHash");
+  const user = await User.findById(userId).select("-password");
   if (!user) {
     const error = new Error("User not found");
     error.statusCode = 404;
@@ -16,7 +16,7 @@ const updateProfile = async (userId, updates, email) => {
   const user = await User.findByIdAndUpdate(userId, updates, {
     new: true,
     runValidators: true,
-  }).select("-passwordHash");
+  }).select("-password");
   if (!user) {
     const error = new Error("User not found");
     error.statusCode = 404;
@@ -27,7 +27,7 @@ const updateProfile = async (userId, updates, email) => {
 };
 
 const getUserById = async (id) => {
-  const user = await User.findById(id).select("-passwordHash");
+  const user = await User.findById(id).select("-password");
   if (!user) {
     const error = new Error("User not found");
     error.statusCode = 404;

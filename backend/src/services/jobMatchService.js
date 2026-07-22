@@ -9,8 +9,8 @@ const listJobMatches = async (
   { page = 1, limit = 10, minScore, maxScore, status },
 ) => {
   const filters = { userId, isActive: true };
-  if (minScore) filters.score = { ...filters.score, $gte: Number(minScore) };
-  if (maxScore) filters.score = { ...filters.score, $lte: Number(maxScore) };
+  if (minScore) filters.matchScore = { ...filters.matchScore, $gte: Number(minScore) };
+  if (maxScore) filters.matchScore = { ...filters.matchScore, $lte: Number(maxScore) };
   if (status) filters.status = status;
 
   const matches = await JobMatch.find(filters)
@@ -18,7 +18,7 @@ const listJobMatches = async (
       path: "jobId",
       select: "title company location postedDate jobType",
     })
-    .sort({ score: -1, createdAt: -1 })
+    .sort({ matchScore: -1, createdAt: -1 })
     .skip((page - 1) * limit)
     .limit(Number(limit));
   const total = await JobMatch.countDocuments(filters);
@@ -49,7 +49,7 @@ const refreshJobMatches = async (userId) => {
     newMatches.push({
       userId: user._id,
       jobId: job._id,
-      score,
+      matchScore: score,
       status: "new",
       isActive: true,
       createdAt: new Date(),
@@ -59,10 +59,10 @@ const refreshJobMatches = async (userId) => {
 
   const summary = {
     total: created.length,
-    minScore: Math.min(...created.map((j) => j.score)),
-    maxScore: Math.max(...created.map((j) => j.score)),
+    minScore: Math.min(...created.map((j) => j.matchScore)),
+    maxScore: Math.max(...created.map((j) => j.matchScore)),
     averageScore: Math.round(
-      created.reduce((s, j) => s + j.score, 0) / created.length,
+      created.reduce((s, j) => s + j.matchScore, 0) / created.length,
     ),
   };
 

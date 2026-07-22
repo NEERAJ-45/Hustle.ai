@@ -1,5 +1,6 @@
 // src/controllers/resumeController.js
 const resumeService = require("../services/resumeService");
+const { tailorResume } = require("../services/resumeTailoringService");
 
 exports.listResumes = async (req, res, next) => {
   try {
@@ -43,6 +44,15 @@ exports.updateResume = async (req, res, next) => {
       req.user.email,
     );
     res.json({ success: true, message: "Resume updated", data });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.tailorResume = async (req, res, next) => {
+  try {
+    const data = await tailorResume(req.user.userId, req.body.jobId);
+    res.status(201).json({ success: true, message: "Tailored resume generated", data });
   } catch (err) {
     next(err);
   }

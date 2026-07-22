@@ -84,11 +84,21 @@ exports.createJobSchema = Joi.object({
   viewCount: Joi.number().optional(),
 });
 
-// Same schema as create, but all fields optional for update
-exports.updateJobSchema = exports.createJobSchema.fork(
-  Object.keys(exports.createJobSchema.describe().keys),
-  (field) => field.optional(),
-);
+// Same schema as create, but all fields optional for update (including nested required fields)
+const makeOptionalRecursive = (schema) => {
+  const desc = schema.describe();
+  if (desc.type !== 'object') return schema.optional();
+  const keys = Object.keys(desc.keys || {});
+  let result = schema;
+  for (const key of keys) {
+    if (desc.keys[key].type === 'object') {
+      result = result.fork([key], (field) => makeOptionalRecursive(field));
+    }
+  }
+  return result.fork(keys, (field) => field.optional());
+};
+
+exports.updateJobSchema = makeOptionalRecursive(exports.createJobSchema);
 
 // Schema for validating :id route param
 exports.idParamSchema = Joi.object({

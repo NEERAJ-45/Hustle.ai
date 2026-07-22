@@ -1,5 +1,6 @@
 // src/controllers/coverLetterController.js
 const coverLetterService = require("../services/coverLetterService");
+const { generateCoverLetter } = require("../services/coverLetterGeneratorService");
 
 exports.listCoverLetters = async (req, res, next) => {
   try {
@@ -46,6 +47,15 @@ exports.updateCoverLetter = async (req, res, next) => {
       req.user.email,
     );
     res.json({ success: true, message: "Letter updated", data });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.generateCoverLetter = async (req, res, next) => {
+  try {
+    const data = await generateCoverLetter(req.user.userId, req.body.jobId);
+    res.status(201).json({ success: true, message: "Cover letter generated", data });
   } catch (err) {
     next(err);
   }

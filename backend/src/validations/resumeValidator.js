@@ -5,6 +5,10 @@ exports.createResumeSchema = Joi.object({
 exports.updateResumeSchema = Joi.object({
   title: Joi.string().max(100)
 });
+exports.tailorResumeSchema = Joi.object({
+  jobId: Joi.string().hex().length(24).required()
+});
+
 exports.idParamSchema = Joi.object({
   id: Joi.string().hex().length(24).required()
 });
